@@ -1,6 +1,7 @@
 ﻿
 
 
+using Domain.Events;
 using Domain.value;
 
 namespace Domain.Entity
@@ -9,9 +10,10 @@ namespace Domain.Entity
     {
         Accepted, 
         Pending, 
-        Cancelled
+        Cancelled,
+        Unknown
     }
-    public class Payment
+    public class Payment : IAppEntity
     {
         public Guid Id { get; private set; }
 
@@ -30,7 +32,11 @@ namespace Domain.Entity
         public DateTime CreatedAt { get; private set; } 
         public int Attempts { get; private set; }   
         
-        public DateTime UpdatedAt { get; private set; }    
+        public DateTime UpdatedAt { get; private set; }
+
+        private List<IDomainEvent> _events = new();
+
+        public IReadOnlyCollection<IDomainEvent> Events => _events;
 
         private Payment(decimal amount, string currency, Provider currentProvider)
         {
@@ -56,8 +62,34 @@ namespace Domain.Entity
 
             var payment = new Payment(amount, currency, currencyProvider);
 
+            payment._events.Add(new CreatePaymentEvent(DateTime.UtcNow));
+
             return Result<Payment, EntityError>.Success(payment);
         }
-        
+
+        public void RegisterAttempt(Provider provider)
+        {
+            CurrentProvider = provider;
+            Attempts++;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void MarkAccepted()
+        {
+            Status = PaymentStatus.Accepted;
+        }
+
+        public void MarkCancelled()
+        {
+            Status = PaymentStatus.Cancelled;
+        }
+        public void MarkUnknown()
+        {
+            Status = PaymentStatus.Unknown;
+        }
+        public void ClearEvents()
+        {
+            _events.Clear();
+        }
     }
 }

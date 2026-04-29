@@ -6,5 +6,14 @@ using System.Threading.Tasks;
 
 namespace Domain.value
 {
-    public record ProviderResponse(HttpResponseMessage? response);
+    public enum ProviderStatus
+    {
+        Accepted,
+        Pending, 
+        Failed, 
+        Timeout,
+        Unknown
+    }
+    public record ProviderResponse(ProviderStatus Status, string ErrorCode);
+
 }

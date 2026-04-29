@@ -1,14 +1,11 @@
-﻿using Domain.Entity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain;
+using Domain.Entity;
+
 
 namespace Application.Interface
 {
     public interface IRoutingService
     {
-        Task SendAsync(Payment payment);
+        Task<Result<ApplicationError>> SendAsync(Payment payment);
     }
 }
