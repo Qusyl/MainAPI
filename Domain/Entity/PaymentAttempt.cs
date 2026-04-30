@@ -1,6 +1,5 @@
 ﻿using Domain.value;
 
-
 namespace Domain.Entity
 {
     public enum AttemptStatus
@@ -29,7 +28,11 @@ namespace Domain.Entity
 
         public DateTime StartedAt { get; private set; }
 
-        public DateTime? CompletedAt { get; private set; }  
+        public DateTime? CompletedAt { get; private set; }
+
+        private List<IDomainEvent> _events => new();
+
+        public IReadOnlyCollection<IDomainEvent> Events => _events;
 
         public PaymentAttempt(Guid paymentId, Provider provider, int attemptNumber, AttemptStatus attemptStatus, string? errorMessage, string providerTransactionId, DateTime startedAt, DateTime? completedAt)
         {
@@ -58,6 +61,11 @@ namespace Domain.Entity
         {
             AttemptStatus = AttemptStatus.Failed;
             ErrorMessage = error;
+        }
+
+        public void ClearEvents()
+        {
+            _events.Clear();
         }
     }
     

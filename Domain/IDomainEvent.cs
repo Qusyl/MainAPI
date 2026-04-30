@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.value;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,10 +9,12 @@ namespace Domain
 {
     public interface IDomainEvent
     {
-        string EventType { get; }
+        string EventType { get;}
 
-        int Version { get; }
+        int Version { get;}
 
         DateTime OccurredOn { get;  }
+
+        List<AttemptInfo> Attempts { get;  }
     }
 }

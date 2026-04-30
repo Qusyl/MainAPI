@@ -1,7 +1,4 @@
-﻿
-
-
-using Domain.Events;
+﻿using Domain.Events.Payment;
 using Domain.value;
 
 namespace Domain.Entity
@@ -29,8 +26,8 @@ namespace Domain.Entity
 
         public uint Version { get; private set; }
 
-        public DateTime CreatedAt { get; private set; } 
-        public int Attempts { get; private set; }   
+        public DateTime CreatedAt { get; private set; }
+        public List<PaymentAttempt> Attempts { get; private set; } = new(); 
         
         public DateTime UpdatedAt { get; private set; }
 
@@ -46,7 +43,6 @@ namespace Domain.Entity
             Status = PaymentStatus.Pending;
             CurrentProvider = currentProvider;
             CreatedAt = DateTime.UtcNow;
-            Attempts = 0;
         }
 
         public static Result<Payment,EntityError> Create(decimal amount, string currency, Provider currencyProvider)
@@ -62,30 +58,31 @@ namespace Domain.Entity
 
             var payment = new Payment(amount, currency, currencyProvider);
 
-            payment._events.Add(new CreatePaymentEvent(DateTime.UtcNow));
-
             return Result<Payment, EntityError>.Success(payment);
         }
 
-        public void RegisterAttempt(Provider provider)
+        public void RegisterAttempt(Provider provider, PaymentAttempt attempt)
         {
             CurrentProvider = provider;
-            Attempts++;
+            Attempts.Add(attempt);
             UpdatedAt = DateTime.UtcNow;
         }
 
         public void MarkAccepted()
         {
             Status = PaymentStatus.Accepted;
+            _events.Add(new PaymentCompleteEvent(DateTime.UtcNow, Attempts.Select(a => new AttemptInfo(a.Provider.Name, a.AttemptStatus.ToString(), a.ErrorMessage)).ToList(), Id, CurrentProvider.Name));
         }
 
         public void MarkCancelled()
         {
             Status = PaymentStatus.Cancelled;
+            _events.Add(new PaymentCancelledEvent(DateTime.UtcNow, Attempts.Select(a => new AttemptInfo(a.Provider.Name, a.AttemptStatus.ToString(), a.ErrorMessage)).ToList(), Id));
         }
         public void MarkUnknown()
         {
             Status = PaymentStatus.Unknown;
+            _events.Add(new PaymentUnknownEvent(DateTime.UtcNow, Attempts.Select(a => new AttemptInfo(a.Provider.Name, a.AttemptStatus.ToString(), a.ErrorMessage)).ToList(), Id));
         }
         public void ClearEvents()
         {

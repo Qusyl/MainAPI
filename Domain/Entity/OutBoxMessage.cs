@@ -12,7 +12,6 @@ namespace Domain.Entity
 
         public string Type { get;  set; }
 
-
         public string Payload { get;  set; }
 
         public int Version { get; set; }
@@ -20,6 +19,8 @@ namespace Domain.Entity
         public DateTime OccurredOn { get;  set; }
 
         public DateTime? ProcessedOn {get; set; }
+
+        public string? Error { get; set; }
         private List<IDomainEvent> _events => new();
         public IReadOnlyCollection<IDomainEvent> Events => _events;
 
@@ -36,6 +37,10 @@ namespace Domain.Entity
         public void MarkProcessed (DateTime timeProcessed)
         {
             ProcessedOn = timeProcessed;
+        }
+        public void SetError(string error)
+        {
+            Error = error;
         }
         public void ClearEvents()
         {
