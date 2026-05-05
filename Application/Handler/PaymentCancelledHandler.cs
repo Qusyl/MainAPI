@@ -1,5 +1,6 @@
 ﻿using Application.Interface;
 using Application.Service;
+using Domain;
 using Domain.Events.Payment;
 using Microsoft.Extensions.Logging;
 
@@ -17,10 +18,11 @@ namespace Application.Handler
             _logger = logger;
             _alertService = alert;
         }
-        public async Task HandleAsync(PaymentCancelledEvent @event, CancellationToken cts = default)
+        public async Task<Result<ApplicationError>> HandleAsync(PaymentCancelledEvent @event, CancellationToken cts = default)
         {
             await _alertService.SendAsync(new Domain.value.PaymentAlert(@event.PaymentId, @event.Message), Domain.value.SecurityStatus.high);
             _logger.LogInformation("Отчёт о проблеме был отправлен");
+            return Result<ApplicationError>.Success;
         }
     }
 }

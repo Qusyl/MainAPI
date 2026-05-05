@@ -15,6 +15,7 @@ namespace Infrastructure.Persistance
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+            modelBuilder.ApplyConfiguration(new OutBoxMessageConfiguration());
         }
     }
 }

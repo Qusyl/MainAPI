@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace Application.Interface
 {
     public interface IHandler<IDomainEvent>
     {
-        Task HandleAsync(IDomainEvent @event, CancellationToken cts = default);
+        Task<Result<ApplicationError>> HandleAsync(IDomainEvent @event, CancellationToken cts = default);
     }
 }

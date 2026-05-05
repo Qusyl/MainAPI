@@ -18,11 +18,12 @@ namespace Application.Handler
             _logger = logger;
             _emailService = emailService;
         }
-        public async Task HandleAsync(PaymentCompleteEvent @event, CancellationToken cts = default)
+        public async Task<Result<ApplicationError>> HandleAsync(PaymentCompleteEvent @event, CancellationToken cts = default)
         {
             await _emailService.SendAsync(new Domain.value.PaymentConfirmation(@event.PaymentId, @event.ProviderName));
 
             _logger.LogInformation("Чек отправлен на почту");
+            return Result<ApplicationError>.Success;
         }
     }
 }

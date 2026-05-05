@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using Application.Interface;
 using Domain;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +47,8 @@ namespace Infrastructure.Persistance
                     var type = Type.GetType(message.Type);
                     if (type == null)
                     {
-                        throw new Exception("Event type is not found");
+
+                        throw new Exception("Type is not found");
                     }
                     var domainEvent = (IDomainEvent)JsonSerializer.Deserialize(message.Payload, type)!;
                     await publisher.PublishAsync(domainEvent, stoppingToken);

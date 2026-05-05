@@ -30,13 +30,15 @@ namespace Application.Service
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<ApplicationError>> SendAsync(Payment payment)
+        public async Task<Result<Payment,ApplicationError>> SendAsync(Payment payment)
         {
             var currentProvider = _providers[0];
+            var attemptNum = 0;
 
             while(currentProvider != null)
             {
-                var attemp = await CreateAttemptAsync(payment, currentProvider);
+                attemptNum++;
+                var attemp = await CreateAttemptAsync(payment, currentProvider, attemptNum);
 
                 var ProviderResponse = await SendToProviderAsync(currentProvider, payment);
                 var decision = await HandleAsync(payment,attemp, ProviderResponse);
@@ -45,13 +47,13 @@ namespace Application.Service
                 var decisionStatus = decision.Response;
 
                 switch(decisionStatus){
-                    case ResponseError.Complete: return Result<ApplicationError>.Success;
-                    case ResponseError.WaitForStatusCheck: return Result<ApplicationError>.Success;
-                    case ResponseError.RetryForNextProvider:currentProvider = ResolveNextProvider(currentProvider, ProviderResponse);if (currentProvider == null) { payment.MarkCancelled(); return Result<ApplicationError>.Failure(ApplicationError.PaymentCancelled); } break;
+                    case ResponseError.Complete: return Result<Payment,ApplicationError>.Success(payment);
+                    case ResponseError.WaitForStatusCheck: return Result<Payment, ApplicationError>.Success(payment);
+                    case ResponseError.RetryForNextProvider:currentProvider = ResolveNextProvider(currentProvider, ProviderResponse);if (currentProvider == null) { payment.MarkCancelled(); return Result<Payment,ApplicationError>.Failure(ApplicationError.PaymentCancelled); } break;
                 }
             }
             
-            return Result<ApplicationError>.Success;
+            return Result<Payment,ApplicationError>.Success(payment);
         }
         private async Task<RoutingDecision> HandleAsync(Payment payment,PaymentAttempt attempt ,ProviderResponse response)
         {
@@ -65,18 +67,18 @@ namespace Application.Service
                 default: return new RoutingDecision(ResponseError.RetryForNextProvider);
             }
         }
-        private async Task<PaymentAttempt> CreateAttemptAsync(Payment payment, Provider provider)
+        private async Task<PaymentAttempt> CreateAttemptAsync(Payment payment, Provider provider, int attemptNum)
         {
-            payment.RegisterAttempt(provider);
+           
             var attempt =  new PaymentAttempt(
                 payment.Id, 
                 provider,
-                payment.Attempts, 
+                attemptNum,
                 AttemptStatus.Started,
                 default, provider.Name,
                 DateTime.UtcNow, 
                 default);
-
+            payment.RegisterAttempt(provider, attempt);
             return attempt;
         }
         private async Task<ProviderResponse> SendToProviderAsync(Provider provider, Payment payment)
