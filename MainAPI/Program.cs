@@ -1,4 +1,6 @@
 using Application.Interface;
+using Application.Interface.Services;
+using Application.Service;
 using Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +30,10 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddHostedService<ProcessWorker>();
 builder.Services.AddScoped<IEventPublisher, EventPublisher>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IRoutingService, RoutingService>();
+builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IAuditService, ManualErrorFixAuditService>();
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();

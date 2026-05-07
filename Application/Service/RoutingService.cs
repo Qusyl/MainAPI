@@ -1,5 +1,6 @@
 ﻿using Application.Dto;
 using Application.Interface;
+using Application.Interface.Services;
 using Domain;
 using Domain.Entity;
 using Domain.value;
@@ -20,7 +21,7 @@ namespace Application.Service
 
         private readonly HttpClient _httpClient;
 
-        private readonly List<Provider> _providers = new List<Provider> { new Provider("A", new Uri("https://localhost:7078/api/provider-a")), new Provider("B", new Uri("https://localhost:7078/api/provider-b")), new Provider("C", new Uri("https://localhost:7078/api/provider-c")) };
+        private readonly List<Provider> _providers = new List<Provider> { new Provider("A", new Uri("https://localhost:7078/api/ProviderA/call")), new Provider("B", new Uri("https://localhost:7078/api/ProviderB/call")), new Provider("C", new Uri("https://localhost:7078/api/ProviderC/call")) };
 
         public RoutingService(IPaymentRepository repository,HttpClient httpClient, ILogger<RoutingService> logger, IUnitOfWork unitOfWork)
         {
@@ -85,7 +86,8 @@ namespace Application.Service
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync(provider.Uri, payment);
+                var paymentDto = new PaymentDto(payment.Amount, payment.Currency, payment.CurrentProvider);
+                var response = await _httpClient.PostAsJsonAsync(provider.Uri, paymentDto);
 
                 if (!response.IsSuccessStatusCode)
                 {

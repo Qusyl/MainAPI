@@ -1,10 +1,11 @@
-﻿using Domain.value;
+﻿using Application.Interface.Services;
+using Domain.value;
 using Microsoft.Extensions.Logging;
 
 
 namespace Application.Service
 {
-    public class ManualErrorFixAuditService
+    public class ManualErrorFixAuditService : IAuditService
     {
         private readonly ILogger _logger;
 

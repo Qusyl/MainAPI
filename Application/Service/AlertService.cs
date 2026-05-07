@@ -1,4 +1,5 @@
-﻿using Domain.value;
+﻿using Application.Interface.Services;
+using Domain.value;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Application.Service
 {
-    public class AlertService
+    public class AlertService : IAlertService
     {
         private readonly ILogger _logger;
 

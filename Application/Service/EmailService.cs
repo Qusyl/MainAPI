@@ -1,4 +1,5 @@
-﻿using Domain.value;
+﻿using Application.Interface.Services;
+using Domain.value;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Application.Service
     /// <summary>
     /// Класс-имитация сервиса для отправки чека при успешном платеже
     /// </summary>
-    public class EmailService
+    public class EmailService : IEmailService
     {
         private readonly ILogger _logger;
 
