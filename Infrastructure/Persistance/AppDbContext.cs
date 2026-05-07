@@ -11,11 +11,18 @@ namespace Infrastructure.Persistance
 
         public DbSet<OutBoxMessage> OutBoxMessages => Set<OutBoxMessage>();
 
+        public DbSet<PaymentAttempt> Attempts => Set<PaymentAttempt>();
+        public AppDbContext()
+        {
+        }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());
             modelBuilder.ApplyConfiguration(new OutBoxMessageConfiguration());
+            modelBuilder.ApplyConfiguration(new PaymentAttemptConfiguration());
         }
     }
 }

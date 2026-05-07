@@ -14,6 +14,7 @@ namespace Application.Service
     public class RoutingService : IRoutingService
     {
         private readonly IPaymentRepository _repository;
+        private readonly IPaymentAttemptRepository _attemptRepository;
 
         private readonly ILogger<RoutingService> _logger;
 
@@ -21,11 +22,12 @@ namespace Application.Service
 
         private readonly HttpClient _httpClient;
 
-        private readonly List<Provider> _providers = new List<Provider> { new Provider("A", new Uri("https://localhost:7078/api/ProviderA/call")), new Provider("B", new Uri("https://localhost:7078/api/ProviderB/call")), new Provider("C", new Uri("https://localhost:7078/api/ProviderC/call")) };
+        private readonly List<Provider> _providers = new List<Provider> { new Provider("A", new Uri("http://providerA:8080/api/ProviderA/call")), new Provider("B", new Uri("http://providerB:8080/api/ProviderA/call")), new Provider("C", new Uri("http://providerA:8080/api/ProviderA/call")) };
 
-        public RoutingService(IPaymentRepository repository,HttpClient httpClient, ILogger<RoutingService> logger, IUnitOfWork unitOfWork)
+        public RoutingService(IPaymentRepository repository, IPaymentAttemptRepository attemptRepos, HttpClient httpClient, ILogger<RoutingService> logger, IUnitOfWork unitOfWork)
         {
             _repository = repository;
+            _attemptRepository = attemptRepos;
             _logger = logger;
             _httpClient = httpClient;
             _unitOfWork = unitOfWork;
@@ -61,7 +63,7 @@ namespace Application.Service
 
             switch (response.Status) {
                 case ProviderStatus.Pending: return new RoutingDecision(ResponseError.WaitForStatusCheck);
-                case ProviderStatus.Accepted: payment.MarkAccepted(); attempt.MarkAccepted(payment.CurrentProvider.Name); return new RoutingDecision(ResponseError.Complete);
+                case ProviderStatus.Accepted: payment.MarkAccepted(); attempt.MarkAccepted(payment.CurrentProvider); return new RoutingDecision(ResponseError.Complete);
                 case ProviderStatus.Failed: attempt.MarkFailed("Attempt is failed");  return new RoutingDecision(ResponseError.RetryForNextProvider);
                 case ProviderStatus.Timeout: payment.MarkUnknown(); attempt.MarkTimeOut(); return new RoutingDecision(ResponseError.RetryForNextProvider);
                 case ProviderStatus.Unknown:payment.MarkUnknown(); return new RoutingDecision(ResponseError.RetryForNextProvider);
@@ -73,13 +75,18 @@ namespace Application.Service
            
             var attempt =  new PaymentAttempt(
                 payment.Id, 
-                provider,
+                provider.Name,
                 attemptNum,
-                AttemptStatus.Started,
+                AttemptStatus.Started.ToString(),
                 default, provider.Name,
                 DateTime.UtcNow, 
                 default);
-            payment.RegisterAttempt(provider, attempt);
+            payment.RegisterAttempt(provider.Name, attempt);
+
+            await _attemptRepository.AddAsync(attempt);
+
+            await _unitOfWork.SaveChangesAsync();
+
             return attempt;
         }
         private async Task<ProviderResponse> SendToProviderAsync(Provider provider, Payment payment)

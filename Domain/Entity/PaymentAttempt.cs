@@ -16,11 +16,11 @@ namespace Domain.Entity
 
         public Guid PaymentId { get;private set; }
 
-        public Provider Provider { get; private set; }
+        public string Provider { get; private set; }
 
         public int AttemptNumber { get; private set; }
 
-        public AttemptStatus AttemptStatus { get; private set; }
+        public string CurrentAttemptStatus { get; private set; }
 
         public string? ErrorMessage { get; private set; }
 
@@ -33,14 +33,16 @@ namespace Domain.Entity
         private List<IDomainEvent> _events => new();
 
         public IReadOnlyCollection<IDomainEvent> Events => _events;
-
-        public PaymentAttempt(Guid paymentId, Provider provider, int attemptNumber, AttemptStatus attemptStatus, string? errorMessage, string providerTransactionId, DateTime startedAt, DateTime? completedAt)
+        private PaymentAttempt()
+        {
+        }
+        public PaymentAttempt(Guid paymentId, string provider, int attemptNumber, string attemptStatus, string? errorMessage, string providerTransactionId, DateTime startedAt, DateTime? completedAt)
         {
             Id = Guid.NewGuid();
             PaymentId = paymentId;
             Provider = provider;
             AttemptNumber = attemptNumber;
-            AttemptStatus = attemptStatus;
+            CurrentAttemptStatus = attemptStatus;
             ErrorMessage = errorMessage;
             ProviderTransactionId = providerTransactionId;
             StartedAt = startedAt;
@@ -49,17 +51,17 @@ namespace Domain.Entity
 
         public void MarkTimeOut()
         {
-            AttemptStatus = AttemptStatus.Timeout;
+            CurrentAttemptStatus = AttemptStatus.Timeout.ToString();
             ErrorMessage = "TimeOut";
         }
         public void MarkAccepted(string transactionId)
         {
-            AttemptStatus = AttemptStatus.Accepted;
+            CurrentAttemptStatus = AttemptStatus.Accepted.ToString(); ;
             ProviderTransactionId = transactionId;
         }
         public void MarkFailed(string error)
         {
-            AttemptStatus = AttemptStatus.Failed;
+            CurrentAttemptStatus = AttemptStatus.Failed.ToString(); ;
             ErrorMessage = error;
         }
 

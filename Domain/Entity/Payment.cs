@@ -18,9 +18,9 @@ namespace Domain.Entity
 
         public string Currency { get; private set; }
 
-        public PaymentStatus Status { get; private set; }
+        public string Status { get; private set; }
 
-        public Provider CurrentProvider { get; private set; } 
+        public string CurrentProvider { get; private set; } 
 
         public string IdempotencyKey { get; private set; }  
 
@@ -34,18 +34,20 @@ namespace Domain.Entity
         private List<IDomainEvent> _events = new();
 
         public IReadOnlyCollection<IDomainEvent> Events => _events;
-
-        private Payment(decimal amount, string currency, Provider currentProvider)
+        private Payment()
+        {
+        }
+        private Payment(decimal amount, string currency, string currentProvider)
         {
             Id = Guid.NewGuid();
             Amount = amount;
             Currency = currency;
-            Status = PaymentStatus.Pending;
+            Status = PaymentStatus.Pending.ToString(); 
             CurrentProvider = currentProvider;
             CreatedAt = DateTime.UtcNow;
         }
 
-        public static Result<Payment,EntityError> Create(decimal amount, string currency, Provider currencyProvider)
+        public static Result<Payment,EntityError> Create(decimal amount, string currency, string currencyProvider)
         {
             if(amount <= 0)
             {
@@ -61,7 +63,7 @@ namespace Domain.Entity
             return Result<Payment, EntityError>.Success(payment);
         }
 
-        public void RegisterAttempt(Provider provider, PaymentAttempt attempt)
+        public void RegisterAttempt(string provider, PaymentAttempt attempt)
         {
             CurrentProvider = provider;
             Attempts.Add(attempt);
@@ -70,19 +72,19 @@ namespace Domain.Entity
 
         public void MarkAccepted()
         {
-            Status = PaymentStatus.Accepted;
-            _events.Add(new PaymentCompleteEvent(DateTime.UtcNow, Attempts.Select(a => new AttemptInfo(a.Provider.Name, a.AttemptStatus.ToString(), a.ErrorMessage)).ToList(), Id, CurrentProvider.Name));
+            Status = PaymentStatus.Accepted.ToString();
+            _events.Add(new PaymentCompleteEvent(DateTime.UtcNow, Attempts.Select(a => new AttemptInfo(a.Provider, a.CurrentAttemptStatus, a.ErrorMessage)).ToList(), Id, CurrentProvider));
         }
 
         public void MarkCancelled()
         {
-            Status = PaymentStatus.Cancelled;
-            _events.Add(new PaymentCancelledEvent(DateTime.UtcNow, Attempts.Select(a => new AttemptInfo(a.Provider.Name, a.AttemptStatus.ToString(), a.ErrorMessage)).ToList(), Id));
+            Status = PaymentStatus.Cancelled.ToString(); 
+            _events.Add(new PaymentCancelledEvent(DateTime.UtcNow, Attempts.Select(a => new AttemptInfo(a.Provider, a.CurrentAttemptStatus, a.ErrorMessage)).ToList(), Id));
         }
         public void MarkUnknown()
         {
-            Status = PaymentStatus.Unknown;
-            _events.Add(new PaymentUnknownEvent(DateTime.UtcNow, Attempts.Select(a => new AttemptInfo(a.Provider.Name, a.AttemptStatus.ToString(), a.ErrorMessage)).ToList(), Id));
+            Status = PaymentStatus.Unknown.ToString(); 
+            _events.Add(new PaymentUnknownEvent(DateTime.UtcNow, Attempts.Select(a => new AttemptInfo(a.Provider, a.CurrentAttemptStatus, a.ErrorMessage)).ToList(), Id));
         }
         public void ClearEvents()
         {

@@ -21,7 +21,7 @@ namespace Domain.Events.Payment
 
         public string Currency {  get; set; }
 
-        public Provider Provider { get; set; }
+        public string Provider { get; set; }
 
         public PaymentCreateEvent(DateTime occurredOn) { 
             OccurredOn=  occurredOn;

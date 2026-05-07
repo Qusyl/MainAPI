@@ -1,5 +1,6 @@
 ﻿using Application.Interface;
 using Application.Service;
+using Domain;
 using Domain.Events.Payment;
 using Microsoft.Extensions.Logging;
 using System;
@@ -21,10 +22,11 @@ namespace Application.Handler
             _logger = logger;
             _audit = audit;
         }
-        public async Task HandleAsync(PaymentUnknownEvent @event, CancellationToken cts = default)
+      public async  Task<Result<ApplicationError>> HandleAsync(PaymentUnknownEvent @event, CancellationToken cts = default)
         {
             await _audit.SendAsync(new Domain.value.CoordinationTask(@event.PaymentId, @event.ProviderName, DateTime.FromOADate(1).AddHours(5)));
             _logger.LogInformation($"Ошибка была перенаправлена в аудит для решения в ручном режиме");
+            return Result<ApplicationError>.Success;
         }
     }
 }

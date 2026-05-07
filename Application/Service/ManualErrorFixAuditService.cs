@@ -7,9 +7,9 @@ namespace Application.Service
 {
     public class ManualErrorFixAuditService : IAuditService
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<ManualErrorFixAuditService> _logger;
 
-        public ManualErrorFixAuditService(ILogger logger) => _logger = logger;
+        public ManualErrorFixAuditService(ILogger<ManualErrorFixAuditService> logger) => _logger = logger;
 
         public async Task SendAsync(CoordinationTask task)
         {

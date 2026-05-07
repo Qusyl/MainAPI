@@ -14,9 +14,9 @@ namespace Application.Service
     /// </summary>
     public class EmailService : IEmailService
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<EmailService> _logger;
 
-        public EmailService(ILogger logger) => _logger = logger;
+        public EmailService(ILogger<EmailService> logger) => _logger = logger;
         
         public async Task SendAsync(PaymentConfirmation confirmation)
         {

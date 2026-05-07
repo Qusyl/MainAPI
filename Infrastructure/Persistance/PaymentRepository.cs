@@ -25,7 +25,7 @@ namespace Infrastructure.Persistance
 
         public async Task<List<Payment>?> GetByStatusAsync(PaymentStatus status)
         {
-            return await _context.Payments.Where(p => p.Status == status).ToListAsync();
+            return await _context.Payments.Where(p => p.Status == status.ToString()).ToListAsync();
         }
     }
 }

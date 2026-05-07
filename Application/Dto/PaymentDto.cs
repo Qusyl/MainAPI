@@ -13,9 +13,9 @@ namespace Application.Dto
 
         public string Currency {  get; set; }
 
-        public Provider Provider { get; set; }
+        public string Provider { get; set; }
 
-        public PaymentDto(decimal amount, string currency, Provider provider)
+        public PaymentDto(decimal amount, string currency, string provider)
         {
             Amount = amount;
             Currency = currency;

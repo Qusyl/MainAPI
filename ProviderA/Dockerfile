@@ -12,19 +12,21 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["ProviderA/ProviderA.csproj", "ProviderA/"]
-RUN dotnet restore "./ProviderA/ProviderA.csproj"
+COPY ["providera/providera.csproj", "providera/"]
+COPY ["Application/Application.csproj", "Application/"]
+COPY ["Domain/Domain.csproj", "Domain/"]
+RUN dotnet restore "providera/providera.csproj"
 COPY . .
-WORKDIR "/src/ProviderA"
-RUN dotnet build "./ProviderA.csproj" -c $BUILD_CONFIGURATION -o /app/build
+#WORKDIR "/src/providera"
+RUN dotnet build "providera/providera.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Этот этап используется для публикации проекта службы, который будет скопирован на последний этап
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./ProviderA.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "providera/providera.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Этот этап используется в рабочей среде или при запуске из VS в обычном режиме (по умолчанию, когда конфигурация отладки не используется)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "ProviderA.dll"]
+ENTRYPOINT ["dotnet", "providera.dll"]

@@ -11,9 +11,9 @@ namespace Application.Service
 {
     public class AlertService : IAlertService
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<AlertService> _logger;
 
-        public AlertService(ILogger logger) => _logger = logger;
+        public AlertService(ILogger<AlertService> logger) => _logger = logger;
 
         public async Task SendAsync(PaymentAlert alert, SecurityStatus status)
         {

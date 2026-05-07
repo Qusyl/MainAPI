@@ -23,6 +23,7 @@ namespace MainAPI.Controllers
         [HttpPost("send")]
         public async Task<IActionResult> CreatePayment([FromBody] PaymentDto paymentDto)
         {
+            _logger.LogInformation("Обращение к контроллеру Payment!");
             var payment = Payment.Create(paymentDto.Amount, paymentDto.Currency, paymentDto.Provider);
             if (!payment.IsSuccess)
             {
