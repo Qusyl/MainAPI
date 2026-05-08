@@ -9,6 +9,6 @@ namespace Application.Interface
 {
     public interface IHandler<IDomainEvent>
     {
-        Task<Result<ApplicationError>> HandleAsync(IDomainEvent @event, CancellationToken cts = default);
+        Task<Result<Guid,ApplicationError>> HandleAsync(IDomainEvent @event, CancellationToken cts = default);
     }
 }

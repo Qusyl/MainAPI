@@ -13,6 +13,7 @@ namespace Application.Interface
 
         Task<List<Payment>?> GetByStatusAsync(PaymentStatus status);
 
+        Task<Payment?> GetAsync(Guid Id);
 
     }
 }

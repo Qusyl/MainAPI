@@ -1,4 +1,5 @@
-﻿using Domain.value;
+﻿using Domain.Entity;
+using Domain.value;
 
 
 namespace Domain.Events.Payment
@@ -11,10 +12,10 @@ namespace Domain.Events.Payment
 
         public DateTime OccurredOn { get;  }
 
-        public List<AttemptInfo> Attempts { get; }
+        public List<PaymentAttempt> Attempts { get; }
         public string ProviderName { get;  }
         public Guid PaymentId { get; }
-        public PaymentUnknownEvent(DateTime occurredOn, List<AttemptInfo> attempts, Guid paymentId)
+        public PaymentUnknownEvent(DateTime occurredOn, List<PaymentAttempt> attempts, Guid paymentId)
         {
             OccurredOn = occurredOn;
             Attempts = attempts;

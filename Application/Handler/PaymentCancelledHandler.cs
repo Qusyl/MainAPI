@@ -1,4 +1,5 @@
 ﻿using Application.Interface;
+using Application.Interface.Services;
 using Application.Service;
 using Domain;
 using Domain.Events.Payment;
@@ -11,18 +12,18 @@ namespace Application.Handler
     {
         private readonly ILogger<PaymentCancelledHandler> _logger;
 
-        private readonly AlertService _alertService;
+        private readonly IAlertService _alertService;
 
-        public PaymentCancelledHandler(ILogger<PaymentCancelledHandler> logger, AlertService alert)
+        public PaymentCancelledHandler(ILogger<PaymentCancelledHandler> logger, IAlertService alert)
         {
             _logger = logger;
             _alertService = alert;
         }
-        public async Task<Result<ApplicationError>> HandleAsync(PaymentCancelledEvent @event, CancellationToken cts = default)
+        public async Task<Result<Guid,ApplicationError>> HandleAsync(PaymentCancelledEvent @event, CancellationToken cts = default)
         {
             await _alertService.SendAsync(new Domain.value.PaymentAlert(@event.PaymentId, @event.Message), Domain.value.SecurityStatus.high);
             _logger.LogInformation("Отчёт о проблеме был отправлен");
-            return Result<ApplicationError>.Success;
+            return Result<Guid,ApplicationError>.Success(@event.PaymentId);
         }
     }
 }

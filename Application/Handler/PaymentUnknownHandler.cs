@@ -1,4 +1,5 @@
 ﻿using Application.Interface;
+using Application.Interface.Services;
 using Application.Service;
 using Domain;
 using Domain.Events.Payment;
@@ -15,18 +16,18 @@ namespace Application.Handler
     {
         private readonly ILogger<PaymentUnknownHandler> _logger;
 
-        private readonly ManualErrorFixAuditService _audit;
+        private readonly IAuditService _audit;
 
-        public PaymentUnknownHandler(ILogger<PaymentUnknownHandler> logger, ManualErrorFixAuditService audit)
+        public PaymentUnknownHandler(ILogger<PaymentUnknownHandler> logger, IAuditService audit)
         {
             _logger = logger;
             _audit = audit;
         }
-      public async  Task<Result<ApplicationError>> HandleAsync(PaymentUnknownEvent @event, CancellationToken cts = default)
+      public async  Task<Result<Guid,ApplicationError>> HandleAsync(PaymentUnknownEvent @event, CancellationToken cts = default)
         {
             await _audit.SendAsync(new Domain.value.CoordinationTask(@event.PaymentId, @event.ProviderName, DateTime.FromOADate(1).AddHours(5)));
             _logger.LogInformation($"Ошибка была перенаправлена в аудит для решения в ручном режиме");
-            return Result<ApplicationError>.Success;
+            return Result<Guid,ApplicationError>.Success(@event.PaymentId);
         }
     }
 }

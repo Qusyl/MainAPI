@@ -3,9 +3,10 @@ using Application.Interface;
 using Application.Interface.Services;
 using Domain;
 using Domain.Entity;
+using Domain.Events.Payment;
 using Domain.value;
 using Microsoft.Extensions.Logging;
-
+using System.Collections.Concurrent;
 using System.Net.Http.Json;
 
 
@@ -15,19 +16,31 @@ namespace Application.Service
     {
         private readonly IPaymentRepository _repository;
         private readonly IPaymentAttemptRepository _attemptRepository;
+        private readonly IHandler<PaymentCancelledEvent> _paymentCancelHandler;
+        private readonly IHandler<PaymentCompleteEvent> _paymentCompleteHandler;
+        private readonly IHandler<PaymentUnknownEvent> _paymentUnknownHandler;
 
+        private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> _lock = new();
         private readonly ILogger<RoutingService> _logger;
 
         private readonly IUnitOfWork _unitOfWork;
 
         private readonly HttpClient _httpClient;
 
-        private readonly List<Provider> _providers = new List<Provider> { new Provider("A", new Uri("http://providerA:8080/api/ProviderA/call")), new Provider("B", new Uri("http://providerB:8080/api/ProviderA/call")), new Provider("C", new Uri("http://providerA:8080/api/ProviderA/call")) };
+        private readonly List<Provider> _providers = new List<Provider>
+{
+    new Provider("A", new Uri("http://providera:8080/api/ProviderA/call")),
+    new Provider("B", new Uri("http://providerb:8080/api/ProviderB/call")),
+    new Provider("C", new Uri("http://providerc:8080/api/ProviderC/call"))
+};
 
-        public RoutingService(IPaymentRepository repository, IPaymentAttemptRepository attemptRepos, HttpClient httpClient, ILogger<RoutingService> logger, IUnitOfWork unitOfWork)
+        public RoutingService(IPaymentRepository repository, IHandler<PaymentCancelledEvent> paymentCancelHandler, IHandler<PaymentCompleteEvent> paymentCompleteHandler, IHandler<PaymentUnknownEvent> paymentUnknownHandler, IPaymentAttemptRepository attemptRepos, HttpClient httpClient, ILogger<RoutingService> logger, IUnitOfWork unitOfWork)
         {
             _repository = repository;
             _attemptRepository = attemptRepos;
+            _paymentCancelHandler = paymentCancelHandler;
+            _paymentCompleteHandler = paymentCompleteHandler;
+            _paymentUnknownHandler = paymentUnknownHandler;
             _logger = logger;
             _httpClient = httpClient;
             _unitOfWork = unitOfWork;
@@ -35,28 +48,47 @@ namespace Application.Service
 
         public async Task<Result<Payment,ApplicationError>> SendAsync(Payment payment)
         {
-            var currentProvider = _providers[0];
-            var attemptNum = 0;
-
-            while(currentProvider != null)
+            var semaphore = _lock.GetOrAdd(payment.Id, _ => new SemaphoreSlim(1, 1));
+            await semaphore.WaitAsync();
+            try
             {
-                attemptNum++;
-                var attemp = await CreateAttemptAsync(payment, currentProvider, attemptNum);
+                var currentProvider = _providers[0];
+                var attemptNum = 0;
 
-                var ProviderResponse = await SendToProviderAsync(currentProvider, payment);
-                var decision = await HandleAsync(payment,attemp, ProviderResponse);
+                while (currentProvider != null)
+                {
+                    attemptNum++;
+                    var attemp = await CreateAttemptAsync(payment, currentProvider, attemptNum);
 
-                await _unitOfWork.SaveChangesAsync();
-                var decisionStatus = decision.Response;
+                    var ProviderResponse = await SendToProviderAsync(currentProvider, payment);
+                    var decision = await HandleAsync(payment, attemp, ProviderResponse);
 
-                switch(decisionStatus){
-                    case ResponseError.Complete: return Result<Payment,ApplicationError>.Success(payment);
-                    case ResponseError.WaitForStatusCheck: return Result<Payment, ApplicationError>.Success(payment);
-                    case ResponseError.RetryForNextProvider:currentProvider = ResolveNextProvider(currentProvider, ProviderResponse);if (currentProvider == null) { payment.MarkCancelled(); return Result<Payment,ApplicationError>.Failure(ApplicationError.PaymentCancelled); } break;
+                    await _unitOfWork.SaveChangesAsync();
+                    var decisionStatus = decision.Response;
+
+                    switch (decisionStatus)
+                    {
+                        case ResponseError.Complete: await _paymentCompleteHandler.HandleAsync(new PaymentCompleteEvent(DateTime.UtcNow, payment.Attempts, payment.Id, payment.CurrentProvider)); return Result<Payment, ApplicationError>.Success(payment);
+                        case ResponseError.WaitForStatusCheck: return Result<Payment, ApplicationError>.Success(payment);
+                        case ResponseError.RetryForNextProvider: currentProvider = ResolveNextProvider(currentProvider, ProviderResponse); if (currentProvider == null) { payment.MarkCancelled(); return Result<Payment, ApplicationError>.Failure(ApplicationError.PaymentCancelled); } break;
+                    }
                 }
+                if (payment.Status == "Unknown")
+                {
+                    await _paymentUnknownHandler.HandleAsync(new PaymentUnknownEvent(DateTime.UtcNow, payment.Attempts, payment.Id));
+                }
+                else
+                {
+                    await _paymentCancelHandler.HandleAsync(new PaymentCancelledEvent(DateTime.UtcNow, payment.Attempts, payment.Id));
+                }
+                    return Result<Payment, ApplicationError>.Failure(ApplicationError.BadAttemptError);
+            }
+            finally
+            {
+                semaphore.Release();
+                _lock.TryRemove(payment.Id, out _);
             }
             
-            return Result<Payment,ApplicationError>.Success(payment);
         }
         private async Task<RoutingDecision> HandleAsync(Payment payment,PaymentAttempt attempt ,ProviderResponse response)
         {
@@ -107,16 +139,23 @@ namespace Application.Service
 
             }catch(TaskCanceledException ex)
             {
+                _logger.LogWarning(ex, "Timeout  provider {Provider}", provider.Name);
                 return new ProviderResponse(
                     ProviderStatus.Timeout,
                     "Timeout"
                     );
             }catch(HttpRequestException ex)
             {
+                _logger.LogError(ex, "HTTP provider {Provider}", provider.Name);
                 return new ProviderResponse(
                     ProviderStatus.Failed,
                     $"{ex.Message}"
                     );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error  provider {Provider}", provider.Name);
+                return new ProviderResponse(ProviderStatus.Failed, "Unexpected error");
             }
         }
 
@@ -132,20 +171,8 @@ namespace Application.Service
         }
         private Provider? ResolveNextProvider(Provider current, ProviderResponse response)
         {
-            if(current.Name == _providers[0].Name && (response.Status == ProviderStatus.Timeout || response.Status == ProviderStatus.Failed))
-            {
-                return _providers[1];
-            }
-            if (current.Name == _providers[1].Name && (response.Status == ProviderStatus.Timeout || response.Status == ProviderStatus.Failed))
-            {
-                return _providers[2];
-            }
-            if(current.Name == _providers[2].Name && (response.Status == ProviderStatus.Timeout || response.Status == ProviderStatus.Failed))
-            {
-                return null;
-            }
-
-            return null;
+            var currentIndex = _providers.FindIndex(p => p.Name == current.Name);
+            return currentIndex < _providers.Count - 1 ? _providers[currentIndex + 1] : null;
         }
     }
 }

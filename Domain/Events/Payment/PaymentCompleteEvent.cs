@@ -1,4 +1,5 @@
-﻿using Domain.value;
+﻿using Domain.Entity;
+using Domain.value;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,12 +16,12 @@ namespace Domain.Events.Payment
 
         public DateTime OccurredOn { get; }
 
-        public List<AttemptInfo> Attempts { get;  }
+        public List<PaymentAttempt> Attempts { get;  }
         public Guid PaymentId { get; }
 
         public string ProviderName { get; }
 
-        public PaymentCompleteEvent(DateTime occurredOn, List<AttemptInfo> attempts, Guid paymentId, string providerName)
+        public PaymentCompleteEvent(DateTime occurredOn, List<PaymentAttempt> attempts, Guid paymentId, string providerName)
         {
             OccurredOn = occurredOn;
             Attempts = attempts;

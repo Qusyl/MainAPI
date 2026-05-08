@@ -23,6 +23,11 @@ namespace Infrastructure.Persistance
             await _context.Payments.AddAsync(payment);
         }
 
+        public async Task<Payment?> GetAsync(Guid Id)
+        {
+           return await _context.Payments.FirstOrDefaultAsync(x => x.Id == Id);
+        }
+
         public async Task<List<Payment>?> GetByStatusAsync(PaymentStatus status)
         {
             return await _context.Payments.Where(p => p.Status == status.ToString()).ToListAsync();

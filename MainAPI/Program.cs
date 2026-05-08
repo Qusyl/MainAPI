@@ -27,21 +27,26 @@ else
 }
 
 
-var assembly = Assembly.GetExecutingAssembly();
-
+var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+Console.WriteLine("Assemblies for scanning [ total: {0} ]",assemblies.Length);
 try
 {
-    foreach (var type in assembly.GetTypes().Where(t => t.IsClass && !t.IsAbstract))
+    foreach(var assembly in assemblies)
     {
-        foreach (var interfac in type.GetInterfaces())
-        {
-            if (interfac.IsGenericType && interfac.GetGenericTypeDefinition() == typeof(IHandler<>))
+
+        Console.WriteLine("Assembly [ number {0} ]", assembly.FullName);
+        foreach (var type in assembly.GetTypes().Where(t => t.IsClass && !t.IsAbstract))
             {
-                builder.Services.AddScoped(interfac, type);
+                foreach (var interf in type.GetInterfaces().Where(intf => intf.IsGenericType &&
+                intf.GetGenericTypeDefinition() == typeof(IHandler<>))
+              )
+                {
+                    builder.Services.AddScoped(interf, type);
+                    Console.WriteLine($"Registered: {interf.Name} -> {type.Name}");
+                }
             }
-        }
     }
-}catch(ReflectionTypeLoadException ex)
+} catch(ReflectionTypeLoadException ex)
 {
     Console.WriteLine(ex);
 
@@ -55,15 +60,16 @@ try
 builder.Services.AddHttpClient<IRoutingService, RoutingService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30)
 );
+builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IAuditService, ManualErrorFixAuditService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddHostedService<ProcessWorker>();
 builder.Services.AddScoped<IEventPublisher, EventPublisher>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentAttemptRepository, PaymentAttemptRepository>();
 builder.Services.AddScoped<IRoutingService, RoutingService>();
-builder.Services.AddScoped<IAlertService, AlertService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IAuditService, ManualErrorFixAuditService>();
+
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();

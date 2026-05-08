@@ -1,9 +1,5 @@
-﻿using Domain.value;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.Entity;
+
 
 namespace Domain.Events.Payment
 {
@@ -15,7 +11,7 @@ namespace Domain.Events.Payment
 
         public DateTime OccurredOn { get; set; }
 
-        public List<AttemptInfo> Attempts => new List<AttemptInfo>(0);
+        public List<PaymentAttempt> Attempts => new List<PaymentAttempt>(0);
 
         public decimal Amount { get; set; }
 
@@ -23,8 +19,11 @@ namespace Domain.Events.Payment
 
         public string Provider { get; set; }
 
-        public PaymentCreateEvent(DateTime occurredOn) { 
+        public PaymentCreateEvent(DateTime occurredOn, decimal amount, string currency, string provider) { 
             OccurredOn=  occurredOn;
+            Amount= amount;
+            Currency= currency;
+            Provider= provider;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Domain.value;
+﻿using Domain.Entity;
+using Domain.value;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,6 @@ namespace Domain
 
         DateTime OccurredOn { get;  }
 
-        List<AttemptInfo> Attempts { get;  }
+        List<PaymentAttempt> Attempts { get;  }
     }
 }

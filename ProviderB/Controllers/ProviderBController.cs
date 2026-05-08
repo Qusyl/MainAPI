@@ -16,8 +16,16 @@ namespace ProviderB.Controllers
             _logger = logger;
             _providerService = serviceProvider;
         }
-
-        [HttpGet("call")]
+        [HttpGet("check")]
+        public IActionResult Check()
+        {
+            return Ok(new
+            {
+                Provider = "B",
+                Status = "Active"
+            });
+        }
+        [HttpPost("call")]
         public async Task<ActionResult<ProviderApiResponse>> GetResponseAsync([FromBody] PaymentDto paymentDto)
         {
             _logger.LogInformation("ProviderB: Получение запроса...");
