@@ -41,7 +41,7 @@ namespace ProviderB.Controllers
                     }
                     );
             }
-            _logger.LogInformation("ProviderB: Ответ получен!");
+            _logger.LogInformation($"ProviderB: ответ {response.Status}");
             return Ok(response);
         }
     }

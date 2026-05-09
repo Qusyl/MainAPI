@@ -25,7 +25,11 @@ namespace Application.Handler
         }
       public async  Task<Result<Guid,ApplicationError>> HandleAsync(PaymentUnknownEvent @event, CancellationToken cts = default)
         {
-            await _audit.SendAsync(new Domain.value.CoordinationTask(@event.PaymentId, @event.ProviderName, DateTime.FromOADate(1).AddHours(5)));
+           var request =  await _audit.SendAsync(new Domain.value.CoordinationTask(@event.PaymentId, @event.ProviderName, DateTime.FromOADate(1).AddHours(5)));
+            if (!request.IsSuccess)
+            {
+                return Result<Guid, ApplicationError>.Failure(request.Error);
+            }
             _logger.LogInformation($"Ошибка была перенаправлена в аудит для решения в ручном режиме");
             return Result<Guid,ApplicationError>.Success(@event.PaymentId);
         }

@@ -1,4 +1,5 @@
-﻿using Domain.value;
+﻿using Domain;
+using Domain.value;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace Application.Interface.Services
 {
     public interface IAuditService 
     {
-        Task SendAsync(CoordinationTask task);
+        Task<Result<ApplicationError>> SendAsync(CoordinationTask task);
     }
 }

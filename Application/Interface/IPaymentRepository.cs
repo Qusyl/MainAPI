@@ -15,5 +15,7 @@ namespace Application.Interface
 
         Task<Payment?> GetAsync(Guid Id);
 
+        Task<string> GetStatusAsync(Guid Id);
+
     }
 }

@@ -69,6 +69,7 @@ builder.Services.AddScoped<IEventPublisher, EventPublisher>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentAttemptRepository, PaymentAttemptRepository>();
 builder.Services.AddScoped<IRoutingService, RoutingService>();
+builder.Services.AddScoped<IAuditRepository, ErrorAuditRepository>(); 
 
 builder.Services.AddControllers();
 

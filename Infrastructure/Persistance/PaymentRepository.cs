@@ -32,5 +32,12 @@ namespace Infrastructure.Persistance
         {
             return await _context.Payments.Where(p => p.Status == status.ToString()).ToListAsync();
         }
+
+        public async Task<string> GetStatusAsync(Guid Id)
+        {
+         var payment =  await _context.Payments.FirstOrDefaultAsync(p => p.Id == Id);
+
+            return payment.Status;
+        }
     }
 }
