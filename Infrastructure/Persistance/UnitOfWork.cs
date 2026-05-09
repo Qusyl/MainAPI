@@ -27,7 +27,7 @@ namespace Infrastructure.Persistance
                     .ToList();
                 var events = entites.SelectMany(x => x.Entity.Events).ToList();
                 foreach (var e in events) {
-                    var message = new Domain.Entity.OutBoxMessage(e.EventType, JsonSerializer.Serialize(e), e.Version, e.OccurredOn, default);
+                    var message = new Domain.Entity.OutBoxMessage(e.EventType, JsonSerializer.Serialize(e, e.GetType()), e.Version, e.OccurredOn, default);
                     
                     await _context.OutBoxMessages.AddAsync(message);
                 }
@@ -35,7 +35,7 @@ namespace Infrastructure.Persistance
 
                 foreach(var entity in entites)
                 {
-                    entites.Clear();
+                    entity.Entity.ClearEvents();
                 }
                 return Result<ApplicationError>.Success;
             }

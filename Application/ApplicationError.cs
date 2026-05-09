@@ -16,5 +16,6 @@ namespace Application
         public static ApplicationError PaymentCancelled => new ApplicationError("Payment is cancelled"); 
         public static ApplicationError ConcurrencyError => new ApplicationError("Concurrency error"); 
         public static ApplicationError EntityError => new ApplicationError("Entity Validation Error"); 
+        public static ApplicationError UnknownError => new ApplicationError("Unknown error"); 
     }
 }

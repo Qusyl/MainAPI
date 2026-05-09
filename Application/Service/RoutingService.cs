@@ -63,19 +63,20 @@ namespace Application.Service
                     var ProviderResponse = await SendToProviderAsync(currentProvider, payment);
                     var decision = await HandleAsync(payment, attemp, ProviderResponse);
 
-                    await _unitOfWork.SaveChangesAsync();
+                   
                     var decisionStatus = decision.Response;
 
                     switch (decisionStatus)
                     {
-                        case ResponseError.Complete: await _paymentCompleteHandler.HandleAsync(new PaymentCompleteEvent(DateTime.UtcNow, payment.Attempts, payment.Id, payment.CurrentProvider)); return Result<Payment, ApplicationError>.Success(payment);
+                        case ResponseError.Complete: await _paymentCompleteHandler.HandleAsync(new PaymentCompleteEvent(DateTime.UtcNow, payment.Attempts, payment.Id, payment.CurrentProvider)); await _unitOfWork.SaveChangesAsync(); return Result<Payment, ApplicationError>.Success(payment);
                         case ResponseError.WaitForStatusCheck: return Result<Payment, ApplicationError>.Success(payment);
-                        case ResponseError.RetryForNextProvider: currentProvider = ResolveNextProvider(currentProvider, ProviderResponse); if (currentProvider == null) { payment.MarkCancelled(); return Result<Payment, ApplicationError>.Failure(ApplicationError.PaymentCancelled); } break;
+                        case ResponseError.RetryForNextProvider: currentProvider = ResolveNextProvider(currentProvider, ProviderResponse); break;
                     }
                 }
                 if (payment.Status == "Unknown")
                 {
                     await _paymentUnknownHandler.HandleAsync(new PaymentUnknownEvent(DateTime.UtcNow, payment.Attempts, payment.Id));
+                    return Result<Payment, ApplicationError>.Failure(ApplicationError.UnknownError);
                 }
                 else
                 {
@@ -98,8 +99,8 @@ namespace Application.Service
                 case ProviderStatus.Accepted: payment.MarkAccepted(); attempt.MarkAccepted(payment.CurrentProvider); return new RoutingDecision(ResponseError.Complete);
                 case ProviderStatus.Failed: attempt.MarkFailed("Attempt is failed");  return new RoutingDecision(ResponseError.RetryForNextProvider);
                 case ProviderStatus.Timeout: payment.MarkUnknown(); attempt.MarkTimeOut(); return new RoutingDecision(ResponseError.RetryForNextProvider);
-                case ProviderStatus.Unknown:payment.MarkUnknown(); return new RoutingDecision(ResponseError.RetryForNextProvider);
-                default: return new RoutingDecision(ResponseError.RetryForNextProvider);
+                case ProviderStatus.Unknown:payment.MarkUnknown();attempt.MarkUnknown("Unknown error"); return new RoutingDecision(ResponseError.RetryForNextProvider);
+                default:  payment.MarkUnknown(); attempt.MarkUnknown("Unknown error"); return new RoutingDecision(ResponseError.RetryForNextProvider);
             }
         }
         private async Task<PaymentAttempt> CreateAttemptAsync(Payment payment, Provider provider, int attemptNum)
@@ -116,8 +117,6 @@ namespace Application.Service
             payment.RegisterAttempt(provider.Name, attempt);
 
             await _attemptRepository.AddAsync(attempt);
-
-            await _unitOfWork.SaveChangesAsync();
 
             return attempt;
         }
@@ -166,6 +165,7 @@ namespace Application.Service
                 case "Accept": return ProviderStatus.Accepted;
                 case "Pending": return ProviderStatus.Pending;
                 case "Failed": return ProviderStatus.Failed;
+                case "Unknown": return ProviderStatus.Unknown;
                 default: return ProviderStatus.Unknown;
             }
         }

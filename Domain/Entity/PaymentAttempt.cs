@@ -8,7 +8,8 @@ namespace Domain.Entity
         Accepted,
         Failed,
         Timeout,
-        Pending
+        Pending,
+        Unknown
     }
     public class PaymentAttempt : IAppEntity
     {
@@ -62,6 +63,11 @@ namespace Domain.Entity
         public void MarkFailed(string error)
         {
             CurrentAttemptStatus = AttemptStatus.Failed.ToString(); ;
+            ErrorMessage = error;
+        }
+        public void MarkUnknown(string error)
+        {
+            CurrentAttemptStatus = AttemptStatus.Unknown.ToString(); ;
             ErrorMessage = error;
         }
 

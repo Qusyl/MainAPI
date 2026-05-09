@@ -10,7 +10,8 @@ namespace Domain.value
     {
         Complete, 
         RetryForNextProvider,
-        WaitForStatusCheck
+        WaitForStatusCheck,
+      
     }
     public record RoutingDecision(ResponseError Response);
     

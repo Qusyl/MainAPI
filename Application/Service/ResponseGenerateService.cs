@@ -24,18 +24,20 @@ namespace Application.Service
         }
         private string GenerateStatus()
         {
-            var choice = new Random().Next(1,10);
+            var choice = new Random().Next(1,11);
 
-            if (choice % 3 == 0) return "Accept";
-            else if (choice % 4 == 0) return "Pending";
-            else return "Failed";
+            if (choice % 4 == 0) return "Pending";
+            else if (choice % 5 == 0) return "Failed";
+            else if (choice % 10 == 0 || choice % 9 == 0) return "Unknown";
+            else return "Accept";
         }
         private string? GenerateError(string status) =>
            status switch
            {
                "Accept" => default,
                "Pending" => "Waiting for handling",
-               "Failed" => "Payment is failed"
+               "Failed" => "Payment is failed",
+               "Unknown" => "Unknown error"
            };
         
     }
