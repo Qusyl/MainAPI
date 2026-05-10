@@ -37,19 +37,19 @@ namespace Domain.Entity
         private Payment()
         {
         }
-        private Payment(decimal amount, string currency, string currentProvider)
+        private Payment(decimal amount, string currency, string currentProvider, string idempotencyKey)
         {
             Id = Guid.NewGuid();
             Amount = amount;
             Currency = currency;
             Status = PaymentStatus.Pending.ToString();
-            IdempotencyKey = Guid.NewGuid().ToString("N");
+            IdempotencyKey = idempotencyKey;
             CurrentProvider = currentProvider;
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public static Result<Payment,EntityError> Create(decimal amount, string currency, string currencyProvider)
+        public static Result<Payment,EntityError> Create(decimal amount, string currency, string currencyProvider, string idempotencyKey)
         {
             if(amount <= 0)
             {
@@ -60,7 +60,7 @@ namespace Domain.Entity
                 return Result<Payment, EntityError>.Failure(EntityError.InvalidCurrency);
             }
 
-            var payment = new Payment(amount, currency, currencyProvider);
+            var payment = new Payment(amount, currency, currencyProvider, idempotencyKey);
 
             return Result<Payment, EntityError>.Success(payment);
         }

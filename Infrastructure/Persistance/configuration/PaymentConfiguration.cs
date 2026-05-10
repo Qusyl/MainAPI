@@ -20,6 +20,7 @@ namespace Infrastructure.Persistance.configuration
             builder.Property(b => b.CurrentProvider);
             builder.Property(b => b.Version).IsRowVersion();
             builder.Property(b => b.IdempotencyKey).IsRequired();
+            builder.HasIndex(b => b.IdempotencyKey).IsUnique();
             builder.Property(b => b.CreatedAt).IsRequired();
             builder.Property(b => b.UpdatedAt).IsRequired();
 

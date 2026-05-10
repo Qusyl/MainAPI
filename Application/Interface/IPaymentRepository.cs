@@ -17,5 +17,7 @@ namespace Application.Interface
 
         Task<string> GetStatusAsync(Guid Id);
 
+        Task<Payment?> GetByIdempotencyAsync(string key);
+
     }
 }

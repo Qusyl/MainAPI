@@ -19,11 +19,14 @@ namespace Domain.Events.Payment
 
         public string Provider { get; set; }
 
-        public PaymentCreateEvent(DateTime occurredOn, decimal amount, string currency, string provider) { 
+        public string IdempotencyKey { get; set; }
+
+        public PaymentCreateEvent(DateTime occurredOn, decimal amount, string currency, string provider, string idempotencyKey) { 
             OccurredOn=  occurredOn;
             Amount= amount;
             Currency= currency;
             Provider= provider;
+            IdempotencyKey= idempotencyKey;
         }
     }
 }

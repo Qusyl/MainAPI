@@ -15,11 +15,14 @@ namespace Application.Dto
 
         public string Provider { get; set; }
 
-        public PaymentDto(decimal amount, string currency, string provider)
+        public string IdempotencyKey {get; set; }
+
+        public PaymentDto(decimal amount, string currency, string provider, string idempotencyKey)
         {
             Amount = amount;
             Currency = currency;
             Provider = provider;
+            IdempotencyKey = idempotencyKey;
         }
             
             

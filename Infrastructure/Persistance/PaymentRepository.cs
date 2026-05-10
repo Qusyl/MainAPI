@@ -28,6 +28,11 @@ namespace Infrastructure.Persistance
            return await _context.Payments.FirstOrDefaultAsync(x => x.Id == Id);
         }
 
+        public async Task<Payment?> GetByIdempotencyAsync(string key)
+        {
+            return await _context.Payments.FirstOrDefaultAsync(p => p.IdempotencyKey == key);
+        }
+
         public async Task<List<Payment>?> GetByStatusAsync(PaymentStatus status)
         {
             return await _context.Payments.Where(p => p.Status == status.ToString()).ToListAsync();

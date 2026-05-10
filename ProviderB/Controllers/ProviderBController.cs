@@ -1,6 +1,7 @@
 ﻿using Application.Dto;
 using Application.Interface.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Concurrent;
 
 namespace ProviderB.Controllers
 {
@@ -10,7 +11,7 @@ namespace ProviderB.Controllers
     {
         private readonly ILogger<ProviderBController> _logger;
         private readonly IProviderService _providerService;
-
+        private readonly ConcurrentDictionary<string, ProviderApiResponse> _idempotencyDictionary = new();
         public ProviderBController(ILogger<ProviderBController> logger, IProviderService serviceProvider)
         {
             _logger = logger;
@@ -28,6 +29,12 @@ namespace ProviderB.Controllers
         [HttpPost("call")]
         public async Task<ActionResult<ProviderApiResponse>> GetResponseAsync([FromBody] PaymentDto paymentDto)
         {
+            _logger.LogInformation("ProviderB: Попытка восстановления платежа...");
+            if(_idempotencyDictionary.TryGetValue(paymentDto.IdempotencyKey, out var existing))
+            {
+                _logger.LogInformation($"ProviderB: Платеж {paymentDto.IdempotencyKey} уже обрабатывается!");
+                return Ok(existing);
+            }
             _logger.LogInformation("ProviderB: Получение запроса...");
             var response = await _providerService.SendAsync(paymentDto);
 
@@ -42,6 +49,10 @@ namespace ProviderB.Controllers
                     );
             }
             _logger.LogInformation($"ProviderB: ответ {response.Status}");
+
+            _logger.LogInformation("ProviderA: Кэширование...");
+            _idempotencyDictionary[paymentDto.IdempotencyKey] = response;
+            _logger.LogInformation("ProviderA: Сохранение завершено!");
             return Ok(response);
         }
     }

@@ -48,11 +48,12 @@ namespace Application.Service
 
         public async Task<Result<Payment,ApplicationError>> SendAsync(Payment payment)
         {
+            
             var semaphore = _lock.GetOrAdd(payment.Id, _ => new SemaphoreSlim(1, 1));
             await semaphore.WaitAsync();
             try
             {
-                var currentProvider = _providers[0];
+                var currentProvider = _providers[0];    
                 var attemptNum = 0;
 
                 while (currentProvider != null)
@@ -124,7 +125,7 @@ namespace Application.Service
         {
             try
             {
-                var paymentDto = new PaymentDto(payment.Amount, payment.Currency, payment.CurrentProvider);
+                var paymentDto = new PaymentDto(payment.Amount, payment.Currency, payment.CurrentProvider, payment.IdempotencyKey);
                 var response = await _httpClient.PostAsJsonAsync(provider.Uri, paymentDto);
 
                 if (!response.IsSuccessStatusCode)

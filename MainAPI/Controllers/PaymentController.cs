@@ -29,7 +29,8 @@ namespace MainAPI.Controllers
         public async Task<IActionResult> CreatePayment([FromBody] PaymentDto paymentDto)
         {
             _logger.LogInformation("Обращение к контроллеру Payment!");
-            var handle = await _createHandler.HandleAsync(new PaymentCreateEvent(DateTime.UtcNow, paymentDto.Amount, paymentDto.Currency, paymentDto.Provider));
+
+            var handle = await _createHandler.HandleAsync(new PaymentCreateEvent(DateTime.UtcNow, paymentDto.Amount, paymentDto.Currency, paymentDto.Provider, paymentDto.IdempotencyKey));
             if (!handle.IsSuccess)
             {
                 return StatusCode(

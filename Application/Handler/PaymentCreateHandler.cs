@@ -26,7 +26,19 @@ namespace Application.Handler
 
         public async Task<Result<Guid,ApplicationError>> HandleAsync(PaymentCreateEvent @event, CancellationToken cts = default)
         {
-            var payment = Payment.Create(@event.Amount, @event.Currency, @event.Provider);
+            var exists = await _paymentRepository.GetByIdempotencyAsync(@event.IdempotencyKey);
+            if (exists != null)
+            {
+                if (exists.Status == PaymentStatus.Accepted.ToString())
+                    return Result<Guid, ApplicationError>.Success(exists.Id);
+
+                if (exists.Status == PaymentStatus.Pending.ToString())
+                    return Result<Guid, ApplicationError>.Success(exists.Id);
+
+                if (exists.Status == PaymentStatus.Unknown.ToString())
+                    return Result<Guid, ApplicationError>.Success(exists.Id);
+            }
+            var payment = Payment.Create(@event.Amount, @event.Currency, @event.Provider, @event.IdempotencyKey);
             if (!payment.IsSuccess)
             {
                 return Result<Guid,ApplicationError>.Failure(ApplicationError.EntityError);
