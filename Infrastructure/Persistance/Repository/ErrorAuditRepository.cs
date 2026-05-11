@@ -1,4 +1,4 @@
-﻿using Application.Interface;
+﻿using Application.Interface.Repository;
 using Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Persistance
+namespace Infrastructure.Persistance.Repository
 {
     public class ErrorAuditRepository : IAuditRepository
     {

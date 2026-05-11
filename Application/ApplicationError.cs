@@ -17,5 +17,7 @@ namespace Application
         public static ApplicationError ConcurrencyError => new ApplicationError("Concurrency error"); 
         public static ApplicationError EntityError => new ApplicationError("Entity Validation Error"); 
         public static ApplicationError UnknownError => new ApplicationError("Unknown error"); 
+        public static ApplicationError InvalidPassword => new ApplicationError("Invalid Password error"); 
+        public static ApplicationError UserDuplicate => new ApplicationError("User is already created"); 
     }
 }

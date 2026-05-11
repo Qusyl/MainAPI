@@ -14,6 +14,7 @@ namespace Infrastructure.Persistance.configuration
         public void Configure(EntityTypeBuilder<Payment> builder)
         {
             builder.HasKey(b => b.Id);
+            builder.Property(b => b.UserId).IsRequired();
             builder.Property(b => b.Currency).IsRequired();
             builder.Property(b => b.Amount).IsRequired();
             builder.Property(b => b.Status).IsRequired();

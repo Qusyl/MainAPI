@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Handler
+namespace Application.Handler.Payment
 {
     public class PaymentUnknownHandler : IHandler<PaymentUnknownEvent>
     {

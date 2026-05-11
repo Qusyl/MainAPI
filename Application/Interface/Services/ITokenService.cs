@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Interface
+namespace Application.Interface.Services
 {
-    public interface IPaymentAttemptRepository
+    public interface ITokenService
     {
-        Task AddAsync(PaymentAttempt attempt);
+        string GenerateToken(User user);
     }
 }

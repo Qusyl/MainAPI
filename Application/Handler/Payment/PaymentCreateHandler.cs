@@ -1,4 +1,5 @@
 ﻿using Application.Interface;
+using Application.Interface.Repository;
 using Domain;
 using Domain.Entity;
 using Domain.Events.Payment;
@@ -9,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Handler
+namespace Application.Handler.Payment
 {
     public class PaymentCreateHandler : IHandler<PaymentCreateEvent>
     {
@@ -38,7 +39,7 @@ namespace Application.Handler
                 if (exists.Status == PaymentStatus.Unknown.ToString())
                     return Result<Guid, ApplicationError>.Success(exists.Id);
             }
-            var payment = Payment.Create(@event.Amount, @event.Currency, @event.Provider, @event.IdempotencyKey);
+            var payment = Domain.Entity.Payment.Create(@event.Amount, @event.Currency, @event.Provider, @event.IdempotencyKey, @event.UserId);
             if (!payment.IsSuccess)
             {
                 return Result<Guid,ApplicationError>.Failure(ApplicationError.EntityError);

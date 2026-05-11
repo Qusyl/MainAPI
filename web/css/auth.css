@@ -1,0 +1,163 @@
+
+*{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family: Arial, Helvetica, sans-serif;
+            background:#f4f7fb;
+
+            min-height:100vh;
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
+
+            padding:20px;
+        }
+
+        .auth-container{
+            width:100%;
+            max-width:420px;
+        }
+
+        .auth-card{
+            background:white;
+
+            border-radius:18px;
+
+            padding:32px;
+
+            box-shadow:
+                0 10px 25px rgba(0,0,0,0.08),
+                0 4px 10px rgba(0,0,0,0.04);
+        }
+
+        .title{
+            font-size:30px;
+            font-weight:bold;
+
+            color:#111827;
+
+            margin-bottom:8px;
+        }
+
+        .subtitle{
+            color:#6b7280;
+
+            margin-bottom:28px;
+        }
+
+        .tabs{
+            display:flex;
+            gap:10px;
+
+            margin-bottom:24px;
+        }
+
+        .tab-btn{
+            flex:1;
+
+            border:none;
+
+            padding:12px;
+
+            border-radius:10px;
+
+            cursor:pointer;
+
+            font-weight:bold;
+
+            background:#e5e7eb;
+
+            transition:0.2s;
+        }
+
+        .tab-btn.active{
+            background:#2563eb;
+            color:white;
+        }
+
+        .form-group{
+            margin-bottom:18px;
+        }
+
+        label{
+            display:block;
+
+            margin-bottom:8px;
+
+            font-size:14px;
+            font-weight:600;
+
+            color:#374151;
+        }
+
+        input{
+            width:100%;
+
+            padding:14px;
+
+            border-radius:12px;
+
+            border:1px solid #d1d5db;
+
+            font-size:15px;
+
+            transition:0.2s;
+        }
+
+        input:focus{
+            outline:none;
+
+            border-color:#2563eb;
+
+            box-shadow:0 0 0 3px rgba(37,99,235,0.15);
+        }
+
+        .submit-btn{
+            width:100%;
+
+            border:none;
+
+            background:#2563eb;
+            color:white;
+
+            padding:14px;
+
+            border-radius:12px;
+
+            font-size:16px;
+            font-weight:bold;
+
+            cursor:pointer;
+
+            transition:0.2s;
+        }
+
+        .submit-btn:hover{
+            background:#1d4ed8;
+        }
+
+        .result-box{
+            margin-top:20px;
+
+            padding:16px;
+
+            border-radius:12px;
+
+            background:#f9fafb;
+
+            border:1px solid #e5e7eb;
+
+            color:#374151;
+
+            min-height:60px;
+        }
+
+        .hidden{
+            display:none;
+        }
+    

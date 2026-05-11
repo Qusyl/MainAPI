@@ -14,6 +14,8 @@ namespace Infrastructure.Persistance
         public DbSet<PaymentAttempt> Attempts => Set<PaymentAttempt>();
 
         public DbSet<ErrorAudit> Audits => Set<ErrorAudit>();
+
+        public DbSet<User> Users => Set<User>();
         public AppDbContext()
         {
         }
@@ -26,6 +28,7 @@ namespace Infrastructure.Persistance
             modelBuilder.ApplyConfiguration(new OutBoxMessageConfiguration());
             modelBuilder.ApplyConfiguration(new PaymentAttemptConfiguration());
             modelBuilder.ApplyConfiguration(new ErrorAuditConfiguration());
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
         }
     }
 }

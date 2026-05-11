@@ -14,6 +14,8 @@ namespace Domain.Entity
     {
         public Guid Id { get; private set; }
 
+        public Guid UserId { get; private set; }
+
         public decimal Amount { get; private set; }
 
         public string Currency { get; private set; }
@@ -37,7 +39,7 @@ namespace Domain.Entity
         private Payment()
         {
         }
-        private Payment(decimal amount, string currency, string currentProvider, string idempotencyKey)
+        private Payment(decimal amount, string currency, string currentProvider, string idempotencyKey, Guid userId)
         {
             Id = Guid.NewGuid();
             Amount = amount;
@@ -47,9 +49,10 @@ namespace Domain.Entity
             CurrentProvider = currentProvider;
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = DateTime.UtcNow;
+            UserId = userId;
         }
 
-        public static Result<Payment,EntityError> Create(decimal amount, string currency, string currencyProvider, string idempotencyKey)
+        public static Result<Payment,EntityError> Create(decimal amount, string currency, string currencyProvider, string idempotencyKey, Guid userId)
         {
             if(amount <= 0)
             {
@@ -60,7 +63,7 @@ namespace Domain.Entity
                 return Result<Payment, EntityError>.Failure(EntityError.InvalidCurrency);
             }
 
-            var payment = new Payment(amount, currency, currencyProvider, idempotencyKey);
+            var payment = new Payment(amount, currency, currencyProvider, idempotencyKey, userId);
 
             return Result<Payment, EntityError>.Success(payment);
         }

@@ -1,5 +1,6 @@
 ﻿using Application.Dto;
 using Application.Interface;
+using Application.Interface.Repository;
 using Application.Interface.Services;
 using Domain;
 using Domain.Entity;

@@ -1,4 +1,4 @@
-﻿using Application.Interface;
+﻿using Application.Interface.Repository;
 using Domain.Entity;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Persistance
+namespace Infrastructure.Persistance.Repository
 {
     public class PaymentAttemptRepository : IPaymentAttemptRepository
     {

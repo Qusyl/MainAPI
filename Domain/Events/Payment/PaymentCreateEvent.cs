@@ -21,9 +21,12 @@ namespace Domain.Events.Payment
 
         public string IdempotencyKey { get; set; }
 
-        public PaymentCreateEvent(DateTime occurredOn, decimal amount, string currency, string provider, string idempotencyKey) { 
+        public Guid UserId { get; set; }    
+
+        public PaymentCreateEvent(DateTime occurredOn, decimal amount, string currency, string provider, string idempotencyKey, Guid userId) { 
             OccurredOn=  occurredOn;
             Amount= amount;
+            UserId = userId;
             Currency= currency;
             Provider= provider;
             IdempotencyKey= idempotencyKey;

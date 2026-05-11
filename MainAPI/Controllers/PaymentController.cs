@@ -1,14 +1,18 @@
 ﻿using Application.Dto;
 using Application.Interface;
+using Application.Interface.Repository;
 using Application.Interface.Services;
 using Domain.Entity;
 using Domain.Events.Payment;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace MainAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PaymentController : ControllerBase
     {
         private readonly IRoutingService _routingService;
@@ -29,8 +33,8 @@ namespace MainAPI.Controllers
         public async Task<IActionResult> CreatePayment([FromBody] PaymentDto paymentDto)
         {
             _logger.LogInformation("Обращение к контроллеру Payment!");
-
-            var handle = await _createHandler.HandleAsync(new PaymentCreateEvent(DateTime.UtcNow, paymentDto.Amount, paymentDto.Currency, paymentDto.Provider, paymentDto.IdempotencyKey));
+            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var handle = await _createHandler.HandleAsync(new PaymentCreateEvent(DateTime.UtcNow, paymentDto.Amount, paymentDto.Currency, paymentDto.Provider, paymentDto.IdempotencyKey, userId));
             if (!handle.IsSuccess)
             {
                 return StatusCode(

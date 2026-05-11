@@ -6,7 +6,7 @@ using Domain.Events.Payment;
 using Microsoft.Extensions.Logging;
 
 
-namespace Application.Handler
+namespace Application.Handler.Payment
 {
     public class PaymentCancelledHandler : IHandler<PaymentCancelledEvent>
     {
