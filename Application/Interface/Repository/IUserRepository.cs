@@ -14,6 +14,8 @@ namespace Application.Interface.Repository
         Task<User?> GetAsync(Guid id);
 
         Task<bool> AnyAsync(string email);
+        
+        Task<User?> GetByEmailAsync(string email);
 
     }
 }

@@ -25,7 +25,7 @@ namespace Application.Handler.Auth
 
         public async Task<Result<Guid, ApplicationError>> HandleAsync(LoginUserEvent @event, CancellationToken cts = default)
         {
-            var user = await _userRepository.GetAsync(@event.UserId);
+            var user = await _userRepository.GetByEmailAsync(@event.Email);
             if (user == null){
                 return Result<Guid, ApplicationError>.Failure(ApplicationError.EntityError);
             }

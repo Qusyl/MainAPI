@@ -16,12 +16,15 @@ namespace Application.Handler.Auth
     {
         private readonly IUserRepository _userRepository;
 
+        private readonly IUnitOfWork _unitOfWork;
+
         private readonly IPasswordHasherService _passwordHasher;
 
-        public UserRegisterHandler(IUserRepository userRepository, IPasswordHasherService passwordHasher)
+        public UserRegisterHandler(IUserRepository userRepository, IPasswordHasherService passwordHasher, IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<Guid, ApplicationError>> HandleAsync(RegisterUserEvent @event, CancellationToken cts = default)
@@ -34,6 +37,13 @@ namespace Application.Handler.Auth
                 return Result<Guid, ApplicationError>.Failure(ApplicationError.EntityError);
             }
             await _userRepository.AddAsync(newUser.Value);
+
+            var save = await _unitOfWork.SaveChangesAsync(cts);
+
+            if (!save.IsSuccess)
+            {
+                return Result<Guid, ApplicationError>.Failure(ApplicationError.ConcurrencyError);
+            }
 
             return Result<Guid, ApplicationError>.Success(newUser.Value.Id);
         }

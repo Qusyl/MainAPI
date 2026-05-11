@@ -49,7 +49,10 @@ namespace Application.Service
 
         public async Task<Result<Payment,ApplicationError>> SendAsync(Payment payment)
         {
-            
+            if (payment.Status == "Accepted")
+            {
+                return Result<Payment, ApplicationError>.Success(payment);
+            }
             var semaphore = _lock.GetOrAdd(payment.Id, _ => new SemaphoreSlim(1, 1));
             await semaphore.WaitAsync();
             try

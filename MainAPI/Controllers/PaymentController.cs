@@ -30,13 +30,24 @@ namespace MainAPI.Controllers
             _paymentRepository = paymentRepository;
         }
         [HttpPost("send")]
-        public async Task<IActionResult> CreatePayment([FromBody] PaymentDto paymentDto)
+        public async Task<ActionResult<PaymentResponseDto>> CreatePayment([FromBody] PaymentDto paymentDto)
         {
             _logger.LogInformation("Обращение к контроллеру Payment!");
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var existing = await _paymentRepository.GetByIdempotencyAsync(paymentDto.IdempotencyKey);
+            if (existing != null) {
+                return Ok(new PaymentResponseDto
+                {
+                    PaymentId = existing.Id,
+                    Status = existing.Status.ToString(),
+                    Provider = existing.CurrentProvider,
+                    OccuredOn = DateTime.UtcNow
+                });
+            }
             var handle = await _createHandler.HandleAsync(new PaymentCreateEvent(DateTime.UtcNow, paymentDto.Amount, paymentDto.Currency, paymentDto.Provider, paymentDto.IdempotencyKey, userId));
             if (!handle.IsSuccess)
             {
+             
                 return StatusCode(
                         500,
                         new
@@ -71,13 +82,14 @@ namespace MainAPI.Controllers
                     );
             }
             _logger.LogInformation("Запрос к провайдеру создан, идёт обработка...");
-            
-            return Ok(new
+
+            return Ok(new PaymentResponseDto
             {
                 PaymentId = res.Value.Id,
                 Status = res.Value.Status.ToString(),
+                Provider = res.Value.CurrentProvider,
                 OccuredOn = DateTime.UtcNow
-            });   
+            });
         }
     }
 }

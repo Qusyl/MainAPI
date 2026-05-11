@@ -49,6 +49,7 @@ const loginTab = document.getElementById("loginTab");
             }
         );
         const data = await response.json();
+	console.log("RESPONSE:", data);
         if(response.ok){
             localStorage.setItem("token", data.token);
             result.innerHTML = `
@@ -62,7 +63,7 @@ const loginTab = document.getElementById("loginTab");
 
             result.innerHTML = `
                 <span style="color:red;">
-                    Ошибка: ${data}
+                    Ошибка: ${data.error}
                 </span>
             `;
         }
@@ -124,7 +125,7 @@ const loginTab = document.getElementById("loginTab");
         else{
             result.innerHTML = `
                 <span style="color:red;">
-                    Ошибка: ${data}
+                    Ошибка: ${data.error}
                 </span>
             `;
         }

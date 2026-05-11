@@ -34,7 +34,10 @@ namespace MainAPI.Controllers
             var existingUser = await _userRepository.AnyAsync(request.Email);
             if(existingUser)
             {
-                return BadRequest("Email is already exists!");
+                return BadRequest(new
+                {
+                    error = "Email already exists"
+                });
             }
             var regAttempt = await _registerHandler.HandleAsync(new RegisterUserEvent(request.Email, request.Password));
             if (!regAttempt.IsSuccess)
@@ -61,9 +64,9 @@ namespace MainAPI.Controllers
             }
             var user = await _userRepository.GetAsync(logAttempt.Value);
             if (user == null) {
-                return StatusCode(500, new
+                return BadRequest(new
                 {
-                    Error = "Login Error"
+                    error = logAttempt.Error.ToString()
                 });
             }
                 var token =  _tokenService.GenerateToken(user);
