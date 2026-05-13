@@ -15,7 +15,7 @@ namespace Infrastructure.Persistance.configuration
         {
             builder.HasKey(p => p.Id);
             builder.Property(p => p.PaymentId).IsRequired();
-          
+            builder.Property(p => p.UserId).IsRequired();
             builder.Property(p => p.AttemptNumber).IsRequired();
             builder.Property(p => p.CurrentAttemptStatus).IsRequired();
             builder.Property(p => p.ErrorMessage);

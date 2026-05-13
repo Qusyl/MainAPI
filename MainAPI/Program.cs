@@ -3,10 +3,14 @@ using Application.Interface.Repository;
 using Application.Interface.Services;
 using Application.Service;
 using Infrastructure.Persistance;
+using Infrastructure.Persistance.configuration;
 using Infrastructure.Persistance.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -66,10 +70,13 @@ try
 builder.Services.AddHttpClient<IRoutingService, RoutingService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30)
 );
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("redis:6379"));
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuditService, ManualErrorFixAuditService>();
+builder.Services.AddScoped<IAntiFraudCheckRepository, AntiFraudCheckRepository>();
+builder.Services.AddScoped<IAntiFraudCheckService, AntiFraudCheckService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddHostedService<ProcessWorker>();
 builder.Services.AddScoped<IEventPublisher, EventPublisher>();

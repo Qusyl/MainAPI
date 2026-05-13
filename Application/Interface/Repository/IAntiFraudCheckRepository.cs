@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 
 namespace Application.Interface.Repository
 {
-    public interface IPaymentAttemptRepository
+    public interface IAntiFraudCheckRepository
     {
-        Task AddAsync(PaymentAttempt attempt);
+        Task AddAsync(FraudCheck check);
 
-        Task<List<PaymentAttempt>?> GetByUserIdAsync(Guid userId);
     }
 }

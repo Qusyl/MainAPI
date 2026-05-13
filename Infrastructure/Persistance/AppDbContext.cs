@@ -15,6 +15,9 @@ namespace Infrastructure.Persistance
 
         public DbSet<ErrorAudit> Audits => Set<ErrorAudit>();
 
+        public DbSet<FraudCheck> Checks => Set<FraudCheck>();
+
+
         public DbSet<User> Users => Set<User>();
         public AppDbContext()
         {
@@ -29,6 +32,7 @@ namespace Infrastructure.Persistance
             modelBuilder.ApplyConfiguration(new PaymentAttemptConfiguration());
             modelBuilder.ApplyConfiguration(new ErrorAuditConfiguration());
             modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new AntiFraudCheckConfiguration());
         }
     }
 }

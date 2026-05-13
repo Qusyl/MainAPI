@@ -69,7 +69,7 @@ namespace MainAPI.Controllers
                        }
                    );
             }
-           var res = await _routingService.SendAsync(payment);
+           var res = await _routingService.SendAsync(payment, userId);
             if (!res.IsSuccess) {
                 _logger.LogError($"{res.Error}");
                 return StatusCode(

@@ -17,6 +17,9 @@ namespace Domain
 
         public static EntityError InvalidAmount => new EntityError("Не верный формат данных: amount");
         public static EntityError InvalidId => new EntityError("Не верный формат данных: Id");
+        public static EntityError InvalidName => new EntityError("Не верный формат данных: ReasonName");
+        public static EntityError InvalidDecision => new EntityError("Не верный формат данных: ReasonDicision");
+    
         public static EntityError InvalidStatus => new EntityError("Не верный формат данных: status");
         public static EntityError InvalidCurrency => new EntityError("Не верный формат данных: currency");
         public static EntityError InvalidEmail => new EntityError("Не верный формат данных: email");

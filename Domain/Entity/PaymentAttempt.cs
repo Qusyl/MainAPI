@@ -17,6 +17,8 @@ namespace Domain.Entity
 
         public Guid PaymentId { get;private set; }
 
+        public Guid UserId { get; private set; }
+
         public string Provider { get; private set; }
 
         public int AttemptNumber { get; private set; }
@@ -37,11 +39,12 @@ namespace Domain.Entity
         private PaymentAttempt()
         {
         }
-        public PaymentAttempt(Guid paymentId, string provider, int attemptNumber, string attemptStatus, string? errorMessage, string providerTransactionId, DateTime startedAt, DateTime? completedAt)
+        public PaymentAttempt(Guid paymentId,Guid userId, string provider, int attemptNumber, string attemptStatus, string? errorMessage, string providerTransactionId, DateTime startedAt, DateTime? completedAt)
         {
             Id = Guid.NewGuid();
             PaymentId = paymentId;
             Provider = provider;
+            UserId = userId;
             AttemptNumber = attemptNumber;
             CurrentAttemptStatus = attemptStatus;
             ErrorMessage = errorMessage;

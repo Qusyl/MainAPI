@@ -7,6 +7,7 @@ using Domain.Entity;
 using Domain.Events.Payment;
 using Domain.value;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 using System.Collections.Concurrent;
 using System.Net.Http.Json;
 
@@ -20,6 +21,7 @@ namespace Application.Service
         private readonly IHandler<PaymentCancelledEvent> _paymentCancelHandler;
         private readonly IHandler<PaymentCompleteEvent> _paymentCompleteHandler;
         private readonly IHandler<PaymentUnknownEvent> _paymentUnknownHandler;
+        private readonly IConnectionMultiplexer _redis;
 
         private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> _lock = new();
         private readonly ILogger<RoutingService> _logger;
@@ -35,7 +37,7 @@ namespace Application.Service
     new Provider("C", new Uri("http://providerc:8080/api/ProviderC/call"))
 };
 
-        public RoutingService(IPaymentRepository repository, IHandler<PaymentCancelledEvent> paymentCancelHandler, IHandler<PaymentCompleteEvent> paymentCompleteHandler, IHandler<PaymentUnknownEvent> paymentUnknownHandler, IPaymentAttemptRepository attemptRepos, HttpClient httpClient, ILogger<RoutingService> logger, IUnitOfWork unitOfWork)
+        public RoutingService(IPaymentRepository repository, IHandler<PaymentCancelledEvent> paymentCancelHandler, IHandler<PaymentCompleteEvent> paymentCompleteHandler, IHandler<PaymentUnknownEvent> paymentUnknownHandler, IPaymentAttemptRepository attemptRepos, HttpClient httpClient, ILogger<RoutingService> logger, IUnitOfWork unitOfWork, IConnectionMultiplexer redis)
         {
             _repository = repository;
             _attemptRepository = attemptRepos;
@@ -45,9 +47,10 @@ namespace Application.Service
             _logger = logger;
             _httpClient = httpClient;
             _unitOfWork = unitOfWork;
+            _redis = redis;
         }
 
-        public async Task<Result<Payment,ApplicationError>> SendAsync(Payment payment)
+        public async Task<Result<Payment,ApplicationError>> SendAsync(Payment payment, Guid userId)
         {
             if (payment.Status == "Accepted")
             {
@@ -57,15 +60,27 @@ namespace Application.Service
             await semaphore.WaitAsync();
             try
             {
-                var currentProvider = _providers[0];    
+                var currentPayment = await _repository.GetAsync(payment.Id);    
+
+                if(currentPayment.Status == PaymentStatus.Accepted.ToString() || currentPayment.Status == PaymentStatus.Cancelled.ToString())
+                {
+                    return Result<Payment, ApplicationError>.Success(payment);
+                }
+                var currentProvider = _providers[0];
+
                 var attemptNum = 0;
 
                 while (currentProvider != null)
                 {
                     attemptNum++;
-                    var attemp = await CreateAttemptAsync(payment, currentProvider, attemptNum);
+                    var attemp = await CreateAttemptAsync(payment, currentProvider, attemptNum, userId);
 
                     var ProviderResponse = await SendToProviderAsync(currentProvider, payment);
+                    var refreshPayment = await _repository.GetAsync(payment.Id);
+                    if (refreshPayment.Status == PaymentStatus.Accepted.ToString() || refreshPayment.Status == PaymentStatus.Cancelled.ToString())
+                    {
+                        return Result<Payment, ApplicationError>.Success(payment);
+                    }
                     var decision = await HandleAsync(payment, attemp, ProviderResponse);
 
                    
@@ -78,14 +93,32 @@ namespace Application.Service
                         case ResponseError.RetryForNextProvider: currentProvider = ResolveNextProvider(currentProvider, ProviderResponse); break;
                     }
                 }
-                if (payment.Status == "Unknown")
+                var finalPayment = await _repository.GetAsync(payment.Id);
+                if (finalPayment.Status == PaymentStatus.Accepted.ToString())
+                {
+                    return Result<Payment, ApplicationError>.Success(payment);
+                }
+                if (finalPayment.Status == PaymentStatus.Unknown.ToString())
                 {
                     await _paymentUnknownHandler.HandleAsync(new PaymentUnknownEvent(DateTime.UtcNow, payment.Attempts, payment.Id));
+                    await _unitOfWork.SaveChangesAsync();
                     return Result<Payment, ApplicationError>.Failure(ApplicationError.UnknownError);
                 }
-                else
+                if(finalPayment.Status == PaymentStatus.Cancelled.ToString())
                 {
+                    payment.MarkCancelled();
+                    var db = _redis.GetDatabase();
+
+                    var key = $"fraud:user:{userId}:declines";
+
+                    var count = await db.StringIncrementAsync(key);
+                    if(count == 1)
+                    {
+                        await db.KeyExpireAsync(key, TimeSpan.FromMinutes(10));
+                    }
+
                     await _paymentCancelHandler.HandleAsync(new PaymentCancelledEvent(DateTime.UtcNow, payment.Attempts, payment.Id));
+                    await _unitOfWork.SaveChangesAsync();
                 }
                     return Result<Payment, ApplicationError>.Failure(ApplicationError.BadAttemptError);
             }
@@ -108,11 +141,12 @@ namespace Application.Service
                 default:  payment.MarkUnknown(); attempt.MarkUnknown("Unknown error"); return new RoutingDecision(ResponseError.RetryForNextProvider);
             }
         }
-        private async Task<PaymentAttempt> CreateAttemptAsync(Payment payment, Provider provider, int attemptNum)
+        private async Task<PaymentAttempt> CreateAttemptAsync(Payment payment, Provider provider, int attemptNum, Guid userId)
         {
            
             var attempt =  new PaymentAttempt(
-                payment.Id, 
+                payment.Id,
+                userId,
                 provider.Name,
                 attemptNum,
                 AttemptStatus.Started.ToString(),

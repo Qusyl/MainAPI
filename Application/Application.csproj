@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.15" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.1" />
     <PackageReference Include="Motor.Extensions.Conversion.Abstractions" Version="0.16.1" />
+    <PackageReference Include="StackExchange.Redis" Version="2.13.1" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
   </ItemGroup>
 

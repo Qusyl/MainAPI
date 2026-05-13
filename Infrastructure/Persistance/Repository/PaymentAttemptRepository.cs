@@ -1,5 +1,6 @@
 ﻿using Application.Interface.Repository;
 using Domain.Entity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,11 @@ namespace Infrastructure.Persistance.Repository
         {
             await _context.Attempts.AddAsync(attempt);
 
+        }
+
+        public async Task<List<PaymentAttempt>?> GetByUserIdAsync(Guid userId)
+        {
+           return await _context.Attempts.Where(a => a.UserId == userId).ToListAsync();
         }
     }
 }

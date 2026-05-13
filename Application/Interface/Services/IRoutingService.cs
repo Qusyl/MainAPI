@@ -6,6 +6,6 @@ namespace Application.Interface.Services
 {
     public interface IRoutingService
     {
-        Task<Result<Payment, ApplicationError>> SendAsync(Payment payment);
+        Task<Result<Payment, ApplicationError>> SendAsync(Payment payment, Guid userId);
     }
 }
