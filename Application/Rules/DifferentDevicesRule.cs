@@ -3,30 +3,29 @@ using Application.Interface;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.Rules
 {
-    public class DifferentIpCountRule : IFraudRule
+    public class DifferentDevicesRule : IFraudRule
     {
-        public string RuleName => "DIFFERENT_IP_COUNT_RULE";
+        public string RuleName => "DIFFERENT_DEVICE_RULE";
         private readonly IConnectionMultiplexer _redis;
 
-        public DifferentIpCountRule(IConnectionMultiplexer redis)
+        public DifferentDevicesRule(IConnectionMultiplexer redis)
         {
             _redis = redis;
         }
-
         public async Task<FraudCheckResult> CheckAsync(TransactionDto transactionDto)
         {
+
             var db = _redis.GetDatabase();
 
-            var key = $"fraud:user_ips:{transactionDto.UserId}";
+            var key = $"fraud:user_devices:{transactionDto.UserId}";
 
-            var added = await db.SetAddAsync(key, transactionDto.IP);
+            var added = await db.SetAddAsync(key, transactionDto.Device);
 
             if (added)
             {
@@ -36,14 +35,14 @@ namespace Application.Rules
                     await db.KeyExpireAsync(key, TimeSpan.FromMinutes(10));
                 }
             }
-
+           
             var uniques = await db.SetLengthAsync(key);
 
             var status = uniques switch
             {
-                1 => new FraudCheckResult(Domain.value.FraudDecision.Allow, RuleName),
-                > 1 and < 5 => new FraudCheckResult(Domain.value.FraudDecision.Suspicious, RuleName, "Needs further verification"),
-                >= 5 => new FraudCheckResult(Domain.value.FraudDecision.Deny, RuleName, "Too many IPs"),
+                < 3 => new FraudCheckResult(Domain.value.FraudDecision.Allow, RuleName),
+                >= 3 and < 5 => new FraudCheckResult(Domain.value.FraudDecision.Suspicious, RuleName, "Needs further verification"),
+                >= 5 => new FraudCheckResult(Domain.value.FraudDecision.Deny, RuleName, "Too many devices detected")
             };
 
             return status;

@@ -20,7 +20,7 @@ namespace Application.Rules
             {
                 < 10000 => new FraudCheckResult(Domain.value.FraudDecision.Allow, RuleName),
                 >= 10000 and < 300000 => new FraudCheckResult(Domain.value.FraudDecision.Suspicious, RuleName, "Needs further verification"),
-                > 300000 => new FraudCheckResult(Domain.value.FraudDecision.Deny, RuleName, "Transaction amount limit")
+                >= 300000 => new FraudCheckResult(Domain.value.FraudDecision.Deny, RuleName, "Transaction amount limit")
             };
 
             return result;

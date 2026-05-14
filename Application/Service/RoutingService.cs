@@ -21,7 +21,8 @@ namespace Application.Service
         private readonly IHandler<PaymentCancelledEvent> _paymentCancelHandler;
         private readonly IHandler<PaymentCompleteEvent> _paymentCompleteHandler;
         private readonly IHandler<PaymentUnknownEvent> _paymentUnknownHandler;
-        private readonly IConnectionMultiplexer _redis;
+        private readonly IAntiFraudTrackingService _antiFraudTrackingService;
+       
 
         private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> _lock = new();
         private readonly ILogger<RoutingService> _logger;
@@ -37,7 +38,7 @@ namespace Application.Service
     new Provider("C", new Uri("http://providerc:8080/api/ProviderC/call"))
 };
 
-        public RoutingService(IPaymentRepository repository, IHandler<PaymentCancelledEvent> paymentCancelHandler, IHandler<PaymentCompleteEvent> paymentCompleteHandler, IHandler<PaymentUnknownEvent> paymentUnknownHandler, IPaymentAttemptRepository attemptRepos, HttpClient httpClient, ILogger<RoutingService> logger, IUnitOfWork unitOfWork, IConnectionMultiplexer redis)
+        public RoutingService(IPaymentRepository repository, IHandler<PaymentCancelledEvent> paymentCancelHandler, IHandler<PaymentCompleteEvent> paymentCompleteHandler, IHandler<PaymentUnknownEvent> paymentUnknownHandler, IPaymentAttemptRepository attemptRepos, HttpClient httpClient, ILogger<RoutingService> logger, IUnitOfWork unitOfWork, IAntiFraudTrackingService antiFraudService)
         {
             _repository = repository;
             _attemptRepository = attemptRepos;
@@ -47,7 +48,8 @@ namespace Application.Service
             _logger = logger;
             _httpClient = httpClient;
             _unitOfWork = unitOfWork;
-            _redis = redis;
+            _antiFraudTrackingService = antiFraudService;
+        
         }
 
         public async Task<Result<Payment,ApplicationError>> SendAsync(Payment payment, Guid userId)
@@ -107,15 +109,8 @@ namespace Application.Service
                 if(finalPayment.Status == PaymentStatus.Cancelled.ToString())
                 {
                     payment.MarkCancelled();
-                    var db = _redis.GetDatabase();
 
-                    var key = $"fraud:user:{userId}:declines";
-
-                    var count = await db.StringIncrementAsync(key);
-                    if(count == 1)
-                    {
-                        await db.KeyExpireAsync(key, TimeSpan.FromMinutes(10));
-                    }
+                    await _antiFraudTrackingService.RegisterTransactionDeclineAsync(userId);
 
                     await _paymentCancelHandler.HandleAsync(new PaymentCancelledEvent(DateTime.UtcNow, payment.Attempts, payment.Id));
                     await _unitOfWork.SaveChangesAsync();

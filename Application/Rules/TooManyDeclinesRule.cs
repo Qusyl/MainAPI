@@ -34,7 +34,7 @@ namespace Application.Rules
             {
                 < 3 => new FraudCheckResult(Domain.value.FraudDecision.Allow, RuleName),
                 >= 3 and < 5 => new FraudCheckResult(Domain.value.FraudDecision.Suspicious, RuleName, "Needs further verification"),
-                > 5 => new FraudCheckResult(Domain.value.FraudDecision.Deny, "Too many declines")
+                >= 5 => new FraudCheckResult(Domain.value.FraudDecision.Deny, "Too many declines")
             };
 
             return status;

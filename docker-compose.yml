@@ -1,7 +1,7 @@
+---
 networks:
   microservices-network:
     driver: bridge
-
 services:
   database:
     image: postgres:15
@@ -11,34 +11,41 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
-    volumes: 
+      - 5432:5432
+    volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - microservices-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test:
+        - CMD-SHELL
+        - pg_isready -U postgres
       interval: 5s
       timeout: 10s
       retries: 10
       start_period: 10s
-
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - 6379:6379
+    networks:
+      - microservices-network
   main-api:
     build:
-      context: .  
+      context: .
       dockerfile: ./mainapi/Dockerfile
     container_name: main-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
       - ConnectionStrings__DefaultConnection=Host=database;Port=5432;Database=postgres;Username=postgres;Password=postgres;
     ports:
-      - "5000:8080"
+      - 5000:8080
     depends_on:
       database:
         condition: service_healthy
     networks:
       - microservices-network
-
   providera:
     build:
       context: .
@@ -47,10 +54,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
-      - "5001:8080"
+      - 5001:8080
     networks:
       - microservices-network
-
   providerb:
     build:
       context: .
@@ -59,10 +65,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
-      - "5002:8080"
+      - 5002:8080
     networks:
       - microservices-network
-
   providerc:
     build:
       context: .
@@ -71,9 +76,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
-      - "5003:8080"
+      - 5003:8080
     networks:
       - microservices-network
-
 volumes:
-  postgres-data:
+  postgres-data: null

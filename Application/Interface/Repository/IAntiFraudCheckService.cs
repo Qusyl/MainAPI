@@ -1,16 +1,13 @@
 ﻿using Application.Dto;
+using Domain;
 using Domain.value;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Transactions;
+
 
 namespace Application.Interface.Repository
 {
     public interface IAntiFraudCheckService
     {
-        Task<FraudDecision> CheckAsync(TransactionDto transactionDto);
+        IReadOnlyCollection<IFraudRule> Rules { get; }
+        Task<Result<FraudDecision, ApplicationError>> CheckAsync(TransactionDto transactionDto);
     }
 }

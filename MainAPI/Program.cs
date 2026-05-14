@@ -55,6 +55,15 @@ try
                     Console.WriteLine($"Registered: {interf.Name} -> {type.Name}");
                 }
             }
+        foreach(var type in assembly.GetTypes().Where(t => t.IsClass && !t.IsAbstract))
+        {
+            foreach (var interf in type.GetInterfaces().Where(intf => intf == typeof(IFraudRule)))
+            {
+                builder.Services.AddScoped(interf, type);
+                Console.WriteLine($"Registered: {interf.Name} -> {type.Name}");
+            }
+        }
+       
     }
 } catch(ReflectionTypeLoadException ex)
 {
@@ -78,6 +87,7 @@ builder.Services.AddScoped<IAuditService, ManualErrorFixAuditService>();
 builder.Services.AddScoped<IAntiFraudCheckRepository, AntiFraudCheckRepository>();
 builder.Services.AddScoped<IAntiFraudCheckService, AntiFraudCheckService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAntiFraudTrackingService, AntiFraudTrackingService>();
 builder.Services.AddHostedService<ProcessWorker>();
 builder.Services.AddScoped<IEventPublisher, EventPublisher>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
