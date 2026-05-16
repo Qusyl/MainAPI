@@ -33,6 +33,8 @@ namespace Domain.Entity
         
         public DateTime UpdatedAt { get; private set; }
 
+        public int ProcessingAttempts { get; private set; } = 0;
+
         private List<IDomainEvent> _events = new();
 
         public IReadOnlyCollection<IDomainEvent> Events => _events;
@@ -81,6 +83,11 @@ namespace Domain.Entity
             _events.Add(new PaymentCompleteEvent(DateTime.UtcNow, Attempts, Id, CurrentProvider));
         }
 
+        public void IncrementProcessingAttempts()
+        {
+            ProcessingAttempts++;
+            UpdatedAt = DateTime.UtcNow;
+        }
         public void MarkCancelled()
         {
             Status = PaymentStatus.Cancelled.ToString(); 

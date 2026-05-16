@@ -24,6 +24,7 @@ namespace Infrastructure.Persistance.configuration
             builder.HasIndex(b => b.IdempotencyKey).IsUnique();
             builder.Property(b => b.CreatedAt).IsRequired();
             builder.Property(b => b.UpdatedAt).IsRequired();
+            builder.Property(b => b.ProcessingAttempts).IsRequired();
 
         }
     }

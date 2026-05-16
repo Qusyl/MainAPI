@@ -1,4 +1,5 @@
-﻿using Application.Interface.Repository;
+﻿using Application.Dto;
+using Application.Interface.Repository;
 using Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -43,6 +44,15 @@ namespace Infrastructure.Persistance.Repository
          var payment =  await _context.Payments.FirstOrDefaultAsync(p => p.Id == Id);
 
             return payment.Status;
+        }
+
+        public async Task UpdateAsync(Guid id, Payment newPayment)
+        {
+           var existing = await _context.Payments.FindAsync(id);
+            if (existing == null) { return; }
+
+            _context.Entry(existing).CurrentValues.SetValues(newPayment);
+
         }
     }
 }

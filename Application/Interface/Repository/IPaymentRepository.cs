@@ -1,4 +1,5 @@
-﻿using Domain.Entity;
+﻿using Application.Dto;
+using Domain.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,8 @@ namespace Application.Interface.Repository
         Task<Payment?> GetAsync(Guid Id);
 
         Task<string> GetStatusAsync(Guid Id);
+
+        Task UpdateAsync(Guid id, Payment newPayment);
 
         Task<Payment?> GetByIdempotencyAsync(string key);
 

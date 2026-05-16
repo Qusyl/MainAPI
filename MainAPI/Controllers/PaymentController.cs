@@ -37,6 +37,28 @@ namespace MainAPI.Controllers
             _httpClientFactory = httpClientFactory;
             _antiFraudService = atifraudService;
         }
+
+        [HttpGet("status/{id}")]
+        public async Task<ActionResult> GetStatus(Guid id)
+        {
+            var payment = await _paymentRepository.GetAsync(id);
+            if (payment == null) {
+                return NotFound(
+                    new
+                    {
+                        Error = "Payment not found"
+                    }
+                    );
+            }
+
+            return Ok(
+                new {
+                paymentId = payment.Id,
+                status = payment.Status,
+                provider = payment.CurrentProvider
+                }
+                );
+        }
         [HttpPost("send")]
         public async Task<ActionResult<PaymentResponseDto>> CreatePayment([FromBody] PaymentDto paymentDto)
         {
@@ -83,9 +105,9 @@ namespace MainAPI.Controllers
                     }
                     );
             }
-            if(antiFraudDecision.Value == FraudDecision.Suspicious)
+            if(antiFraudDecision.Value == FraudDecision.Suspicious && !paymentDto.IsHumanVerified)
             {
-                return StatusCode(409,
+                return StatusCode(403,
                     new
                     {
                         Error = "Transaction need further verification",
@@ -97,7 +119,7 @@ namespace MainAPI.Controllers
                 return StatusCode(403,
  
                     new {
-                    Error = "Fraud detected",
+                    Error = $"Fraud detected",
                     Decision = "Deny"
                     }
                     );

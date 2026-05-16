@@ -17,6 +17,8 @@ namespace Application.Dto
 
         public string IdempotencyKey {get; set; }
 
+        public bool IsHumanVerified { get; set; }
+
         public PaymentDto(decimal amount, string currency, string provider, string idempotencyKey)
         {
             Amount = amount;

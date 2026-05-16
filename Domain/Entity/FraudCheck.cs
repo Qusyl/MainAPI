@@ -31,6 +31,7 @@ namespace Domain.Entity
             RuleName = ruleName;
             RuleDecision = ruleDecision;
             Reason = reason;
+            CreatedAt = DateTime.UtcNow;
         }
         public static Result<FraudCheck, EntityError> Create(Guid userId, string ruleName, string ruleDecision, string? reason)
         {

@@ -1,4 +1,5 @@
 ﻿using Application.Dto;
+using Application.Interface;
 using Application.Interface.Repository;
 using Application.Rules;
 using Domain;
@@ -11,23 +12,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Interface.Services
+namespace Application.Service
 {
     public class AntiFraudCheckService : IAntiFraudCheckService
     {
        
         private readonly List<IFraudRule> _rules = new List<IFraudRule>();
         private readonly IAntiFraudCheckRepository _repos;
+        private readonly IUnitOfWork _unitOfWork;
+
+      
 
 
         public IReadOnlyCollection<IFraudRule> Rules => _rules.AsReadOnly();
 
 
 
-        public AntiFraudCheckService( IEnumerable<IFraudRule> rules, IAntiFraudCheckRepository repos)
+        public AntiFraudCheckService( IEnumerable<IFraudRule> rules, IAntiFraudCheckRepository repos, IUnitOfWork unitOfWork)
         {
             _rules.AddRange(rules);
             _repos = repos;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<FraudDecision, ApplicationError>> CheckAsync(TransactionDto transactionDto)
@@ -42,7 +47,8 @@ namespace Application.Interface.Services
                 {
                     return Result<FraudDecision, ApplicationError>.Failure(ApplicationError.EntityError);
                 }
-
+               await _repos.AddAsync(fraudCheck.Value);
+                await _unitOfWork.SaveChangesAsync();
                 if (result.Decision == FraudDecision.Deny)
                 {
                     return Result<FraudDecision, ApplicationError>.Success(FraudDecision.Deny);

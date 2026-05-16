@@ -138,3 +138,6 @@ const loginTab = document.getElementById("loginTab");
         `;
     }
 });
+document.querySelector('.return-btn').addEventListener('click', function() {
+    window.location.href = '../html/index.html';
+});

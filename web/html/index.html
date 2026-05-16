@@ -30,7 +30,30 @@
         </div>
 
     </header>
+<div id="verificationModal" class="modal hidden">
 
+        <div class="modal-content">
+
+            <h2>
+                Подтверждение
+            </h2>
+
+            <p>
+                Подтвердите, что вы не бот
+            </p>
+
+            <label>
+                <input type="checkbox" id="humanCheck">
+                Я человек
+            </label>
+
+            <button id="verifyButton">
+                Продолжить
+            </button>
+
+        </div>
+
+    </div>
     <div class="container">
 
         <div class="payment-card">
@@ -81,7 +104,8 @@
                 </button>
 
             </form>
-
+   
+    
             <div class="result-box">
 
                 <div class="result-title">
@@ -89,7 +113,10 @@
                 </div>
 
                 <div class="result-content" id="result">
-                    Ожидание запроса...
+                    <div id="paymentStatusIcon"></div>
+                    <div id="paymentText">
+                        Ожидание запроса...
+                    </div>
                 </div>
 
             </div>
@@ -98,7 +125,10 @@
 
     </div>
 
+
+
     <script src="../js/index.js"></script>
 
 </body>
+
 </html>
