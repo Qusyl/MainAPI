@@ -51,7 +51,7 @@ namespace MainAPI.Controllers
                 });
             }
             var token = _tokenService.GenerateToken(user);
-            return Ok(new AuthResponseDto(token, DateTime.UtcNow.AddHours(1)));
+            return StatusCode(201,new AuthResponseDto(token, DateTime.UtcNow.AddHours(1)));
         }
 
         [HttpPost("login")]

@@ -120,6 +120,10 @@ const loginTab = document.getElementById("loginTab");
                 </span>
             `;
 
+	setTimeout(() => {
+        window.location.href = '../html/index.html';
+    }, 1000);
+
             console.log("TOKEN:", data.token);
         }
         else{

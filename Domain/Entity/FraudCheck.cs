@@ -28,6 +28,7 @@ namespace Domain.Entity
         private FraudCheck(Guid userId, string ruleName, string ruleDecision, string? reason )
         {
             Id = Guid.NewGuid();
+            UserId = userId;
             RuleName = ruleName;
             RuleDecision = ruleDecision;
             Reason = reason;
